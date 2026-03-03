@@ -1,0 +1,177 @@
+{
+  "projectType": "cli-tool",
+  "projectName": "Flowbaker",
+  "projectDescription": "Self-hosted workflow automation executor that connects to Flowbaker platform to run workflows with 46+ integrations.",
+  "theme": "aspen",
+  "primaryColor": "#6366f1",
+  "lightColor": "#818cf8",
+  "darkColor": "#4f46e5",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/workflows",
+              "concepts/nodes",
+              "concepts/integrations",
+              "concepts/executors"
+            ]
+          },
+          {
+            "group": "Commands",
+            "pages": [
+              "commands/start",
+              "commands/status",
+              "commands/workspaces",
+              "commands/reset"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "configuration/setup",
+              "configuration/authentication",
+              "configuration/environment"
+            ]
+          },
+          {
+            "group": "Self-Hosting",
+            "pages": [
+              "self-hosting/deployment",
+              "self-hosting/docker",
+              "self-hosting/security"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Integrations",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "integrations/overview"
+            ]
+          },
+          {
+            "group": "Communication",
+            "pages": [
+              "integrations/discord",
+              "integrations/slack",
+              "integrations/telegram",
+              "integrations/teams"
+            ]
+          },
+          {
+            "group": "AI & LLM",
+            "pages": [
+              "integrations/openai",
+              "integrations/anthropic",
+              "integrations/gemini",
+              "integrations/groq",
+              "integrations/ai-agent"
+            ]
+          },
+          {
+            "group": "Development",
+            "pages": [
+              "integrations/github",
+              "integrations/gitlab",
+              "integrations/jira",
+              "integrations/linear"
+            ]
+          },
+          {
+            "group": "Storage",
+            "pages": [
+              "integrations/dropbox",
+              "integrations/google-drive",
+              "integrations/s3",
+              "integrations/storage"
+            ]
+          },
+          {
+            "group": "Databases",
+            "pages": [
+              "integrations/postgresql",
+              "integrations/mongodb",
+              "integrations/redis",
+              "integrations/snowflake"
+            ]
+          },
+          {
+            "group": "Productivity",
+            "pages": [
+              "integrations/google-sheets",
+              "integrations/gmail",
+              "integrations/notion",
+              "integrations/pipedrive"
+            ]
+          },
+          {
+            "group": "Utilities",
+            "pages": [
+              "integrations/http",
+              "integrations/webhook",
+              "integrations/cron",
+              "integrations/jwt"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Executor API",
+            "pages": [
+              "api/overview",
+              "api/authentication",
+              "api/executions",
+              "api/workspaces"
+            ]
+          },
+          {
+            "group": "Domain Models",
+            "pages": [
+              "api/workflow",
+              "api/node",
+              "api/integration"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Self-hosted workflow automation executor",
+    "46+ pre-built integrations (Discord, GitHub, OpenAI, etc.)",
+    "AI agent capabilities with memory and knowledge management",
+    "Multi-workspace support with secure authentication",
+    "Cron-based scheduling for automated workflows",
+    "HTTP API for programmatic workflow execution",
+    "Real-time workflow execution and monitoring"
+  ],
+  "publicApiSurface": [
+    "flowbaker start",
+    "flowbaker status",
+    "flowbaker workspaces",
+    "flowbaker reset",
+    "POST /workspaces/:workspaceID/executions",
+    "DELETE /workspaces/:workspaceID/executions/:executionID",
+    "POST /workspaces/:workspaceID/executions/:executionID/nodes/:nodeID",
+    "POST /workspaces/:workspaceID/connection-test",
+    "GET /health"
+  ]
+}
