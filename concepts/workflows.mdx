@@ -1,0 +1,172 @@
+---
+title: Workflows
+description: Learn about workflows, workflow types, and activation status in Flowbaker
+---
+
+# Workflows
+
+Workflows are the core building blocks of Flowbaker. A workflow represents an automated sequence of actions triggered by specific events. Each workflow consists of nodes connected together to create powerful automation pipelines.
+
+## Workflow Structure
+
+A workflow in Flowbaker is represented by the `Workflow` struct:
+
+```go
+type Workflow struct {
+    ID               string
+    Name             string
+    Description      string
+    Slug             string
+    WorkspaceID      string
+    AuthorUserID     string
+    Nodes            []WorkflowNode
+    Settings         WorkflowSettings
+    LastUpdatedAt    time.Time
+    ActivationStatus WorkflowActivationStatus
+    DeletedAt        *time.Time
+}
+```
+
+### Key Properties
+
+- **ID**: Unique identifier for the workflow
+- **Name**: Human-readable name for the workflow
+- **Description**: Detailed explanation of what the workflow does
+- **Slug**: URL-friendly identifier
+- **WorkspaceID**: The workspace this workflow belongs to
+- **Nodes**: Array of workflow nodes that define the automation logic
+- **Settings**: Configuration options for workflow execution
+- **ActivationStatus**: Whether the workflow is active or inactive
+
+## Workflow Types
+
+Flowbaker supports two types of workflows:
+
+```go
+type WorkflowType string
+
+const (
+    WorkflowTypeDefault WorkflowType = "default"
+    WorkflowTypeTesting WorkflowType = "testing"
+)
+```
+
+<AccordionGroup>
+  <Accordion title="Default Workflows">
+    Production workflows that execute automatically when triggered. These workflows run continuously and process real data from your integrations.
+  </Accordion>
+
+  <Accordion title="Testing Workflows">
+    Development workflows used for testing and debugging. Testing workflows allow you to validate your automation logic before deploying to production.
+  </Accordion>
+</AccordionGroup>
+
+## Activation Status
+
+Workflows can be in one of two activation states:
+
+```go
+type WorkflowActivationStatus string
+
+const (
+    WorkflowActivationStatusActive   WorkflowActivationStatus = "active"
+    WorkflowActivationStatusInactive WorkflowActivationStatus = "inactive"
+)
+```
+
+### Active Workflows
+
+Active workflows respond to trigger events and execute automatically. When a workflow is active:
+
+- Trigger nodes listen for incoming events
+- Scheduled triggers run on their defined schedule
+- Webhook endpoints are available to receive data
+
+You can check if a workflow is active programmatically:
+
+```go
+func (w Workflow) IsActive() bool {
+    return w.ActivationStatus == WorkflowActivationStatusActive
+}
+```
+
+### Inactive Workflows
+
+Inactive workflows are paused and will not execute, even when trigger conditions are met. This is useful for:
+
+- Temporarily disabling automation without deleting it
+- Testing and development
+- Scheduled maintenance windows
+
+<Warning>
+Inactive workflows will not process any events. Make sure to activate your workflow after configuration.
+</Warning>
+
+## Workflow Settings
+
+Each workflow has configurable settings that control execution behavior:
+
+```go
+type WorkflowSettings struct {
+    NodeExecutionLimit int
+}
+```
+
+### Node Execution Limit
+
+The `NodeExecutionLimit` prevents infinite loops by limiting how many times a single node can execute within a workflow run. This is a safety mechanism to protect against:
+
+- Accidental infinite loops
+- Runaway automation
+- Excessive resource consumption
+
+<Note>
+The default node execution limit is 1000. Individual nodes can override this with their own settings.
+</Note>
+
+## Working with Workflow Nodes
+
+Workflows provide several helper methods to work with their nodes:
+
+### Get Node by ID
+
+```go
+func (w Workflow) GetNodeByID(nodeID string) (WorkflowNode, bool)
+```
+
+Retrieves a specific node by its unique identifier.
+
+### Get Trigger Nodes
+
+```go
+func (w Workflow) GetTriggerNodes() []WorkflowNode
+```
+
+Returns all trigger nodes in the workflow. Trigger nodes are the entry points that start workflow execution.
+
+### Get Action Nodes
+
+```go
+func (w Workflow) GetActionNodes() []WorkflowNode
+```
+
+Returns all action nodes in the workflow. Action nodes perform the actual work and transformations.
+
+### Get Sub Nodes
+
+```go
+func (w Workflow) GetSubNodes(nodeID string) []WorkflowNode
+```
+
+Returns all child nodes of a specific parent node, useful for hierarchical workflow structures.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Nodes" icon="circle-nodes" href="/concepts/nodes">
+    Learn about workflow nodes and how they connect
+  </Card>
+  <Card title="Integrations" icon="plug" href="/concepts/integrations">
+    Explore available integrations and actions
+  </Card>
+</CardGroup>

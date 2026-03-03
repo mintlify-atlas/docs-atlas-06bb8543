@@ -1,0 +1,340 @@
+---
+title: "Anthropic (Claude) Integration"
+description: "Use Claude AI models for advanced conversational AI and text analysis"
+---
+
+The Anthropic integration provides access to Claude, one of the most capable AI models for conversation, analysis, and content generation.
+
+## Authentication
+
+You need an Anthropic API key to use this integration.
+
+### Getting Your API Key
+
+1. Go to [Anthropic Console](https://console.anthropic.com/)
+2. Sign in or create an account
+3. Navigate to "API Keys" in the settings
+4. Click "Create Key"
+5. Copy the API key immediately
+6. Store it securely
+
+### Adding to Flowbaker
+
+1. Navigate to your workspace settings
+2. Go to "Credentials" → "Add Credential"
+3. Select "Anthropic"
+4. Paste your API key
+5. Save the credential
+
+## Available Actions
+
+### Send Prompt
+
+Send a prompt to Claude and receive a generated response.
+
+**Parameters:**
+- `model` (required): The Claude model to use
+- `prompt` (required): The main prompt/question to send to Claude
+- `system_prompt` (optional): System instructions to guide Claude's behavior
+- `max_tokens` (optional): Maximum tokens to generate (default: 1024)
+- `temperature` (optional): Randomness in output (0-1)
+
+**Example:**
+```json
+{
+  "model": "claude-opus-4-5-20251101",
+  "prompt": "Explain quantum computing in simple terms",
+  "system_prompt": "You are a helpful teacher who explains complex topics simply",
+  "max_tokens": 500
+}
+```
+
+**Output:**
+- `content`: The generated text response
+- `model`: The model used
+- `usage`: Token usage information
+  - `input_tokens`: Tokens in the request
+  - `output_tokens`: Tokens in the response
+- `finish_reason`: Why the generation stopped
+
+### AI Agent Chat
+
+Use Claude within AI agents for autonomous task completion with tool use.
+
+**Parameters:**
+- `model` (required): The Claude model to use
+- `temperature` (optional): Creativity level (0-1)
+- `max_tokens` (optional): Maximum tokens to generate
+- `top_p` (optional): Nucleus sampling parameter
+- `top_k` (optional): Top-K sampling parameter
+
+**Note:** This action is designed for use within AI Agent nodes and supports tool calling.
+
+## Available Models
+
+### Claude 4.5 Series (Latest)
+
+**Claude Opus 4.5** (`claude-opus-4-5-20251101`)
+- Most powerful Claude model
+- Excellent for complex reasoning and analysis
+- Best instruction following
+- Highest context window (200k tokens)
+- Most expensive
+
+**Claude Sonnet 4.5** (`claude-sonnet-4-5-20250929`)
+- Balanced performance and cost
+- Great for most use cases
+- Fast response times
+- Good reasoning capabilities
+
+**Claude Haiku 4.5** (`claude-haiku-4-5-20251001`)
+- Fastest model
+- Most cost-effective
+- Best for simple tasks and high-volume use
+- Still very capable
+
+### Claude 4 Series
+
+**Claude Opus 4** (`claude-opus-4-20250514`)
+- Previous generation flagship model
+- Still very capable
+- Good fallback option
+
+**Claude Sonnet 4** (`claude-sonnet-4-20250514`)
+- Balanced previous generation
+- Lower cost than Opus 4
+
+### Claude 3 Series (Legacy)
+
+**Claude Sonnet 3.7** (`claude-3-7-sonnet-20250219`)
+**Claude Haiku 3.5** (`claude-3-5-haiku-20241022`)
+**Claude Opus 3** (`claude-3-opus-20240229`)
+
+These are older models but still available and capable for many tasks.
+
+## Model Selection Guide
+
+### When to Use Opus 4.5
+- Complex reasoning tasks
+- Long document analysis
+- Creative writing requiring nuance
+- Critical decision-making
+- Tasks requiring highest accuracy
+
+### When to Use Sonnet 4.5
+- General conversational AI
+- Content generation
+- Data analysis
+- Code generation
+- Most business applications
+
+### When to Use Haiku 4.5
+- High-volume simple tasks
+- Quick responses needed
+- Cost-sensitive applications
+- Simple Q&A
+- Basic classification
+
+## Example Workflows
+
+### Content Generator
+
+1. **Trigger**: Cron (weekly)
+2. **Transform**: Prepare content brief
+3. **Anthropic**: Send Prompt with topic
+4. **Transform**: Format output
+5. **Notion**: Save to content database
+
+### Document Analyzer
+
+1. **Trigger**: Webhook (document uploaded)
+2. **Transform**: Extract document text
+3. **Anthropic**: Send Prompt (analyze document)
+4. **Transform**: Format analysis
+5. **Slack**: Send summary notification
+
+### Customer Support Bot
+
+1. **Trigger**: Slack Message Received
+2. **Transform**: Format conversation history
+3. **Anthropic**: Send Prompt with context
+4. **Slack**: Reply with Claude's response
+
+### Code Review Assistant
+
+1. **Trigger**: GitHub Pull Request
+2. **GitHub**: Get PR diff
+3. **Anthropic**: Send Prompt (review code)
+4. **GitHub**: Post review comments
+
+### AI Agent with Tools
+
+1. **Trigger**: Webhook
+2. **AI Agent**: Configure with Claude model
+3. **Tools**: Connect database, API, email
+4. **AI Agent**: Execute with Anthropic
+5. **Response**: Return completion result
+
+## Advanced Features
+
+### Long Context Windows
+
+Claude models support very large context windows:
+
+- **Opus 4.5**: 200,000 tokens
+- **Sonnet 4.5**: 200,000 tokens
+- **Haiku 4.5**: 200,000 tokens
+
+This allows you to:
+- Analyze entire books
+- Process large codebases
+- Maintain long conversations
+- Review extensive documents
+
+### System Prompts
+
+Use system prompts to guide Claude's behavior:
+
+```json
+{
+  "system_prompt": "You are a helpful, harmless, and honest AI assistant. You always provide accurate information and admit when you're not sure about something.",
+  "prompt": "What is the capital of France?"
+}
+```
+
+### Tool Use (Function Calling)
+
+When used in AI Agent nodes, Claude can use tools to:
+- Query databases
+- Call APIs
+- Search documents
+- Perform calculations
+- Execute workflows
+
+## Token Limits & Pricing
+
+| Model | Context Window | Max Output | Input Price | Output Price |
+|-------|----------------|------------|-------------|---------------|
+| Opus 4.5 | 200k tokens | 16k tokens | Higher | Higher |
+| Sonnet 4.5 | 200k tokens | 16k tokens | Medium | Medium |
+| Haiku 4.5 | 200k tokens | 16k tokens | Lower | Lower |
+
+**Note**: Exact pricing varies. Check [Anthropic's pricing page](https://www.anthropic.com/pricing) for current rates.
+
+## Rate Limits
+
+Rate limits depend on your Anthropic plan:
+
+- **Free tier**: Limited requests per day
+- **Build tier**: Higher limits
+- **Scale tier**: Even higher limits
+- **Enterprise**: Custom limits
+
+Flowbaker automatically handles rate limiting and will retry failed requests.
+
+## Temperature Settings
+
+The `temperature` parameter controls randomness:
+
+- **0.0-0.3**: More focused and deterministic
+  - Use for: factual answers, analysis, structured output
+- **0.4-0.7**: Balanced
+  - Use for: general conversation, Q&A
+- **0.8-1.0**: More creative and varied
+  - Use for: creative writing, brainstorming
+
+## Error Handling
+
+### Common Errors
+
+**"Invalid API Key"**
+- Check your API key is correct
+- Ensure it hasn't expired
+- Verify it's properly formatted
+
+**"Rate limit exceeded"**
+- You've hit your account's rate limit
+- Wait before retrying
+- Consider upgrading your plan
+
+**"Context too large"**
+- Your input exceeds the model's context window
+- Reduce the prompt length
+- Split into multiple requests
+
+**"Overloaded"**
+- Anthropic's servers are experiencing high load
+- Retry with exponential backoff
+- Consider using a different model temporarily
+
+## Best Practices
+
+### Prompt Engineering
+
+1. **Be specific**: Clear instructions get better results
+2. **Use examples**: Show Claude what you want
+3. **Set context**: Use system prompts to set behavior
+4. **Break down complex tasks**: Split into steps
+5. **Iterate**: Refine prompts based on results
+
+### Cost Optimization
+
+1. **Choose the right model**: Don't use Opus for simple tasks
+2. **Limit output length**: Set appropriate `max_tokens`
+3. **Cache responses**: Store common responses
+4. **Batch requests**: Group similar requests when possible
+5. **Monitor usage**: Track token consumption
+
+### Response Quality
+
+1. **Provide context**: Give Claude background information
+2. **Use system prompts**: Guide overall behavior
+3. **Request specific formats**: Ask for JSON, markdown, etc.
+4. **Review outputs**: Implement validation and review steps
+5. **Handle errors**: Add error handling to workflows
+
+## Comparison with Other Models
+
+### Claude vs GPT
+
+**Claude strengths:**
+- Longer context windows (200k vs 128k)
+- Better at following complex instructions
+- More natural conversation style
+- Strong ethical guidelines
+- Excellent for analysis and reasoning
+
+**GPT strengths:**
+- More models to choose from
+- Image generation (DALL-E)
+- Embeddings models
+- Larger ecosystem
+- Function calling more mature
+
+### When to Use Claude
+
+- Long document analysis
+- Complex reasoning tasks
+- Ethical AI applications
+- Nuanced conversation
+- Content that requires carefulness
+
+## Safety & Content Policy
+
+Claude is designed with safety in mind:
+
+- Refuses harmful requests
+- Avoids bias and discrimination
+- Admits uncertainty
+- Protects user privacy
+- Follows ethical guidelines
+
+For sensitive use cases, review [Anthropic's usage policies](https://www.anthropic.com/legal/aup).
+
+## Resources
+
+- [Anthropic Documentation](https://docs.anthropic.com/)
+- [Claude API Reference](https://docs.anthropic.com/claude/reference)
+- [Prompt Engineering Guide](https://docs.anthropic.com/claude/docs/prompt-engineering)
+- [Pricing Information](https://www.anthropic.com/pricing)
+- [Console](https://console.anthropic.com/)

@@ -1,0 +1,167 @@
+---
+title: 'Webhook'
+description: 'Receive webhook requests from any API endpoint with optional authentication.'
+---
+
+## Overview
+
+The Webhook integration allows you to receive HTTP requests from external services and trigger workflows based on incoming webhook data.
+
+## Configuration
+
+The Webhook integration supports optional authentication to secure your webhook endpoints:
+
+| Authentication Method | Description |
+|----------------------|-------------|
+| **JWT (JSON Web Token)** | Token-based authentication with signature verification |
+| **Basic Authentication** | Username and password authentication |
+
+Credentials are optional - you can create webhooks without authentication if your use case doesn't require it.
+
+### JWT Authentication
+
+```json
+{
+  "webhook_auth_type": "jwt",
+  "jwt_secret": "your_secret_key",
+  "jwt_algorithm": "HS256"
+}
+```
+
+**Supported JWT Algorithms:**
+- HS256 (HMAC with SHA-256)
+- HS384 (HMAC with SHA-384)
+- HS512 (HMAC with SHA-512)
+- RS256 (RSA with SHA-256)
+- RS384 (RSA with SHA-384)
+- RS512 (RSA with SHA-512)
+- ES256 (ECDSA with SHA-256)
+- ES384 (ECDSA with SHA-384)
+- ES512 (ECDSA with SHA-512)
+
+### Basic Authentication
+
+```json
+{
+  "webhook_auth_type": "basic_auth",
+  "basic_auth_username": "your_username",
+  "basic_auth_password": "your_password"
+}
+```
+
+## Available Triggers
+
+### HTTP Request Received
+
+Triggered when an HTTP request is received at the webhook endpoint.
+
+**Parameters:**
+- **Path**: The path of the webhook endpoint (automatically generated or custom)
+- **Respond Options**: Choose how to respond to the request
+  - **Return Response Immediately**: Sends a default 200 OK response
+  - **Use Send Response Node**: Allows custom response via Send Response node in workflow
+
+**Allowed HTTP Methods:**
+- GET
+- POST
+- PUT
+- PATCH
+- DELETE
+- HEAD
+
+### Webhook Data Structure
+
+When a webhook is triggered, the following data is available:
+
+```json
+{
+  "method": "POST",
+  "path": "/webhook/abc123",
+  "headers": {
+    "content-type": "application/json",
+    "user-agent": "..."
+  },
+  "query": {
+    "param1": "value1"
+  },
+  "body": {
+    "key": "value"
+  }
+}
+```
+
+## Example Workflows
+
+### Simple Webhook Receiver
+
+1. **Trigger**: HTTP Request Received
+2. **Respond Type**: Return Response Immediately
+3. Process the webhook data in subsequent workflow steps
+
+### Custom Response Webhook
+
+1. **Trigger**: HTTP Request Received
+2. **Respond Type**: Use Send Response Node
+3. Process data in workflow
+4. **Action**: Send Response with custom status code and body
+
+### Authenticated Webhook
+
+1. Configure JWT or Basic Auth credentials
+2. **Trigger**: HTTP Request Received
+3. Authentication is automatically verified before workflow executes
+4. Process authenticated requests
+
+### Webhook to Database
+
+1. **Trigger**: HTTP Request Received
+2. **Action**: Insert data into database
+3. **Response**: Return success confirmation
+
+## Security Best Practices
+
+- Use JWT or Basic Authentication for sensitive webhooks
+- Rotate JWT secrets regularly
+- Use strong passwords for Basic Authentication
+- Validate webhook data before processing
+- Use HTTPS for webhook URLs in production
+- Consider IP whitelisting for additional security
+- Log webhook requests for audit trails
+
+## Tips
+
+- Test webhooks with tools like Postman or curl
+- Use Return Response Immediately for simple use cases
+- Use Send Response Node when you need custom response codes or bodies
+- Access webhook data using expressions: `{{trigger.body.fieldName}}`
+- Query parameters are available at `{{trigger.query.paramName}}`
+- Headers are available at `{{trigger.headers.headerName}}`
+- The request method is available at `{{trigger.method}}`
+
+## Testing Your Webhook
+
+### Using curl
+
+```bash
+curl -X POST https://your-domain.com/webhook/path \
+  -H "Content-Type: application/json" \
+  -d '{"test": "data"}'
+```
+
+### With Basic Auth
+
+```bash
+curl -X POST https://your-domain.com/webhook/path \
+  -u username:password \
+  -H "Content-Type: application/json" \
+  -d '{"test": "data"}'
+```
+
+### With JWT
+
+```bash
+curl -X POST https://your-domain.com/webhook/path \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"test": "data"}'
+```

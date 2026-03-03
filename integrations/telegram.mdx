@@ -1,0 +1,386 @@
+---
+title: "Telegram Integration"
+description: "Send messages, media, and manage Telegram bot interactions"
+---
+
+The Telegram integration allows you to create powerful bots that can send messages, media files, and manage chats using the Telegram Bot API.
+
+## Authentication
+
+To use the Telegram integration, you need a bot token from BotFather.
+
+### Creating a Telegram Bot
+
+1. Open Telegram and search for [@BotFather](https://t.me/botfather)
+2. Start a chat and send `/newbot`
+3. Follow the prompts to:
+   - Choose a name for your bot (display name)
+   - Choose a username (must end in "bot", e.g., "myflowbot")
+4. BotFather will provide your bot token (format: `123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11`)
+5. **Save this token securely** - you'll need it for Flowbaker
+
+### Adding Credentials to Flowbaker
+
+1. Navigate to your workspace settings
+2. Go to "Credentials" → "Add Credential"
+3. Select "Telegram" from the integration list
+4. Paste your bot token
+5. Save the credential
+
+## Available Actions
+
+### Send Text Message
+
+Send a text message to a chat.
+
+**Parameters:**
+- `chat_id` (required): The chat ID (user, group, or channel)
+- `message` (required): The text message to send
+
+**Example:**
+```json
+{
+  "chat_id": "123456789",
+  "message": "Hello from Flowbaker!"
+}
+```
+
+**Output:**
+- `message_id`: The ID of the sent message
+- `chat_id`: The chat where the message was sent
+- `text`: The message content
+- `date`: Unix timestamp when the message was sent
+
+### Edit Text Message
+
+Edit a previously sent text message.
+
+**Parameters:**
+- `chat_id` (required): The chat ID
+- `message_id` (required): The ID of the message to edit
+- `text` (required): The new message text
+
+### Delete Message
+
+Delete a message from a chat.
+
+**Parameters:**
+- `chat_id` (required): The chat ID
+- `message_id` (required): The ID of the message to delete
+
+**Note:** Messages can only be deleted if they are less than 48 hours old.
+
+### Pin Chat Message
+
+Pin a message in a chat.
+
+**Parameters:**
+- `chat_id` (required): The chat ID
+- `message_id` (required): The ID of the message to pin
+- `disable_notification` (optional): Don't notify chat members about the pin
+
+### Unpin Chat Message
+
+Unpin a message (or all messages) in a chat.
+
+**Parameters:**
+- `chat_id` (required): The chat ID
+- `message_id` (optional): The ID of the message to unpin (leave empty to unpin all)
+
+### Send Photo
+
+Send a photo to a chat.
+
+**Parameters:**
+- `chat_id` (required): The chat ID
+- `photo` (required): The photo file to send
+- `caption` (optional): Photo caption (supports Markdown)
+
+### Send Video
+
+Send a video file to a chat.
+
+**Parameters:**
+- `chat_id` (required): The chat ID
+- `video` (required): The video file to send
+- `caption` (optional): Video caption
+
+### Send Audio
+
+Send an audio file to a chat.
+
+**Parameters:**
+- `chat_id` (required): The chat ID
+- `audio` (required): The audio file to send
+- `caption` (optional): Audio caption
+
+### Send Document
+
+Send a document (any file type) to a chat.
+
+**Parameters:**
+- `chat_id` (required): The chat ID
+- `document` (required): The document file to send
+- `caption` (optional): Document caption
+
+### Send Animation
+
+Send an animated GIF or video.
+
+**Parameters:**
+- `chat_id` (required): The chat ID
+- `animation` (required): The animation file (GIF or MP4)
+- `caption` (optional): Animation caption
+
+### Send Sticker
+
+Send a sticker to a chat.
+
+**Parameters:**
+- `chat_id` (required): The chat ID
+- `sticker` (required): The sticker file (WEBP, TGS, or WEBM)
+
+### Send Location
+
+Send a geographic location.
+
+**Parameters:**
+- `chat_id` (required): The chat ID
+- `latitude` (required): Latitude of the location
+- `longitude` (required): Longitude of the location
+
+### Send Media Group
+
+Send a group of photos or videos as an album.
+
+**Parameters:**
+- `chat_id` (required): The chat ID
+- `media_urls` (required): Comma-separated list of photo/video URLs
+
+**Note:** At least 2 media items are required for a media group.
+
+### Get Chat
+
+Get information about a chat.
+
+**Parameters:**
+- `chat_id` (required): The chat ID
+
+**Returns:** Chat details including title, type, member count, etc.
+
+### Get Chat Administrators
+
+Get a list of administrators in a chat.
+
+**Parameters:**
+- `chat_id` (required): The chat ID
+
+**Returns:** Array of administrator information.
+
+### Get Chat Member
+
+Get information about a specific chat member.
+
+**Parameters:**
+- `chat_id` (required): The chat ID
+- `user_id` (required): The user ID
+
+### Leave Chat
+
+Make the bot leave a group, supergroup, or channel.
+
+**Parameters:**
+- `chat_id` (required): The chat ID
+
+### Set Chat Description
+
+Change the description of a group, supergroup, or channel.
+
+**Parameters:**
+- `chat_id` (required): The chat ID
+- `description` (required): New description (0-255 characters)
+
+### Set Chat Title
+
+Change the title of a chat.
+
+**Parameters:**
+- `chat_id` (required): The chat ID
+- `title` (required): New chat title (1-128 characters)
+
+## Available Triggers
+
+### On Message
+
+Triggers when a new message is received by the bot.
+
+**Configuration:**
+- `chat_id` (optional): Filter messages from a specific chat (leave empty for all chats)
+
+**Event Data:**
+- `message`: The message object
+- `chat`: Chat information
+- `from`: Sender information
+- `text`: Message text (if text message)
+
+### On Edited Message
+
+Triggers when a message is edited.
+
+**Configuration:**
+- `chat_id` (optional): Filter by specific chat
+
+### On Channel Post
+
+Triggers when a new post is published in a channel.
+
+**Configuration:**
+- `channel_id` (optional): Filter by specific channel
+
+### On Edited Channel Post
+
+Triggers when a channel post is edited.
+
+**Configuration:**
+- `channel_id` (optional): Filter by specific channel
+
+## Finding Chat IDs
+
+### For Private Chats (Users)
+
+1. Have the user send a message to your bot
+2. Visit: `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates`
+3. Look for the "chat" object in the response - the "id" field is the chat_id
+
+### For Groups
+
+1. Add your bot to the group
+2. Send a message in the group
+3. Visit the getUpdates URL (same as above)
+4. The group chat_id will be a negative number
+
+### Using @userinfobot
+
+1. Forward a message from the chat to [@userinfobot](https://t.me/userinfobot)
+2. The bot will reply with the chat ID
+
+## Message Formatting
+
+Telegram supports multiple formatting styles:
+
+### Markdown
+
+```
+*bold text*
+_italic text_
+[inline URL](http://www.example.com/)
+`inline code`
+```
+pre-formatted code block
+```
+```
+
+### HTML
+
+```html
+<b>bold</b>
+<i>italic</i>
+<a href="http://www.example.com/">inline URL</a>
+<code>inline code</code>
+<pre>pre-formatted code block</pre>
+```
+
+## Example Workflows
+
+### Auto-Reply Bot
+
+1. **Trigger**: On Message (Telegram)
+2. **Condition**: Check message content
+3. **Transform**: Prepare response
+4. **Telegram**: Send Text Message (reply)
+
+### Media Processor
+
+1. **Trigger**: On Message (Telegram)
+2. **Condition**: Check if message contains photo
+3. **OpenAI**: Analyze image with GPT-4 Vision
+4. **Telegram**: Send Text Message with analysis
+
+### Notification Bot
+
+1. **Trigger**: Webhook (from external system)
+2. **Transform**: Format notification
+3. **Telegram**: Send Text Message to admin chat
+
+### Group Management Bot
+
+1. **Trigger**: On Message
+2. **Condition**: Check for spam keywords
+3. **Telegram**: Delete Message
+4. **Telegram**: Send Text Message (warning)
+
+## File Size Limits
+
+Telegram has file size restrictions:
+
+- **Photos**: 10 MB max
+- **Videos**: 50 MB max
+- **Documents**: 2 GB max (via Bot API)
+- **Audio**: 50 MB max
+
+## Bot Permissions
+
+For group/channel administration features, ensure your bot has the necessary permissions:
+
+- **Delete messages**: To use Delete Message action
+- **Pin messages**: To use Pin/Unpin actions
+- **Change chat info**: To modify chat title/description
+- **Manage chat**: For administrative actions
+
+## Rate Limits
+
+Telegram Bot API has rate limits:
+
+- **Messages to same chat**: ~20-30 per second
+- **Different chats**: ~30 messages per second total
+- **Global limit**: Avoid sending more than 30 messages per second
+
+Flowbaker automatically handles rate limiting.
+
+## Troubleshooting
+
+### "Bot was blocked by the user"
+
+The user has blocked your bot. Remove them from your notification list.
+
+### "Chat not found"
+
+The chat ID is incorrect, or the bot hasn't interacted with the chat yet.
+
+### "Not enough rights"
+
+The bot doesn't have the necessary permissions in the group/channel.
+
+### Messages not delivering
+
+Check that:
+1. The bot token is correct
+2. The chat ID is valid
+3. The bot hasn't been blocked
+4. For groups: the bot is still a member
+
+## Best Practices
+
+1. **Use inline keyboards** for interactive messages
+2. **Format messages** for better readability
+3. **Handle errors** gracefully in workflows
+4. **Respect privacy** - don't store unnecessary user data
+5. **Test in private chats** before deploying to groups
+6. **Monitor rate limits** to avoid API restrictions
+7. **Validate chat IDs** before sending messages
+
+## Resources
+
+- [Telegram Bot API Documentation](https://core.telegram.org/bots/api)
+- [BotFather Commands](https://core.telegram.org/bots/features#botfather)
+- [Telegram Bot Examples](https://core.telegram.org/bots/samples)

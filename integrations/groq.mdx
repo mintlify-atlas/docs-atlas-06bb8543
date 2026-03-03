@@ -1,0 +1,402 @@
+---
+title: "Groq Integration"
+description: "Ultra-fast LLM inference powered by Groq's LPU technology"
+---
+
+The Groq integration provides access to blazing-fast language model inference using Groq's proprietary Language Processing Unit (LPU) technology.
+
+## Authentication
+
+You need a Groq API key to use this integration.
+
+### Getting Your API Key
+
+1. Go to [GroqCloud](https://console.groq.com/)
+2. Sign up or log in to your account
+3. Navigate to "API Keys"
+4. Click "Create API Key"
+5. Give your key a descriptive name
+6. Copy the API key immediately
+7. Store it securely
+
+### Adding to Flowbaker
+
+1. Navigate to your workspace settings
+2. Go to "Credentials" → "Add Credential"
+3. Select "Groq"
+4. Paste your API key
+5. Save the credential
+
+## What Makes Groq Different?
+
+### LPU Technology
+
+Groq uses Language Processing Units (LPUs) instead of traditional GPUs:
+
+- **Extremely fast inference**: 10-100x faster than GPU-based solutions
+- **Low latency**: Sub-second response times
+- **Deterministic performance**: Consistent, predictable speeds
+- **Energy efficient**: Lower power consumption
+
+### Speed Benefits
+
+- **Tokens per second**: Up to 500+ tokens/second
+- **Time to first token**: < 100ms
+- **Batch processing**: Massive throughput
+- **Real-time applications**: Perfect for interactive use
+
+## Available Actions
+
+### AI Agent Chat
+
+Use Groq models within AI agents for ultra-fast autonomous task completion.
+
+**Parameters:**
+- `model` (required): The Groq model to use
+- `temperature` (optional): Creativity level (0-2, default: varies)
+- `max_tokens` (optional): Maximum tokens to generate
+- `top_p` (optional): Nucleus sampling parameter (0-1)
+
+**Example:**
+```json
+{
+  "model": "groq/compound",
+  "temperature": 0.7,
+  "max_tokens": 2048,
+  "top_p": 0.9
+}
+```
+
+**Note:** This action is designed for use within AI Agent nodes and supports tool calling.
+
+## Available Models
+
+### Groq Compound Series
+
+**Groq Compound** (`groq/compound`)
+- Flagship Groq-optimized model
+- Best balance of capability and speed
+- Excellent for most use cases
+- Extremely fast inference
+
+**Groq Compound Mini** (`groq/compound-mini`)
+- Smaller, faster variant
+- Lower cost
+- Great for simple tasks
+- Ultra-low latency
+
+### Open-Source Models on Groq
+
+**GPT-OSS 120B** (`openai/gpt-oss-120b`)
+- Large open-source model
+- High capability
+- Fast inference on LPU
+
+**GPT-OSS 20B** (`openai/gpt-oss-20b`)
+- Smaller variant
+- Faster inference
+- Good for most tasks
+
+### Meta Llama on Groq
+
+**Llama 4 Maverick 17B** (`meta-llama/llama-4-maverick-17b-128e-instruct`)
+- Latest Llama 4 model
+- Expert-level capabilities
+- Optimized for instruction following
+
+**Llama 4 Scout 17B** (`meta-llama/llama-4-scout-17b-16e-instruct`)
+- Specialized variant
+- Fast inference
+- Efficient for specific tasks
+
+**Llama 3.3 70B Versatile** (`llama-3.3-70b-versatile`)
+- Large, capable model
+- Versatile for various tasks
+- Good reasoning abilities
+
+**Llama 3.1 8B Instant** (`llama-3.1-8b-instant`)
+- Smallest, fastest option
+- Instant responses
+- Great for high-volume use
+
+### Specialized Models
+
+**Kimi K2 Instruct (262K)** (`moonshotai/kimi-k2-instruct-0905`)
+- Massive 262K context window
+- Excellent for long documents
+- Instruction-tuned
+
+**Kimi K2 Instruct** (`moonshotai/kimi-k2-instruct`)
+- Standard variant
+- Good context length
+- Instruction following
+
+**Qwen 3 32B** (`qwen/qwen3-32b`)
+- Mid-size capable model
+- Multilingual support
+- Fast on Groq LPU
+
+## Model Selection Guide
+
+### For Speed (Fastest → Slower)
+
+1. Groq Compound Mini
+2. Llama 3.1 8B Instant
+3. Groq Compound
+4. Llama 4 Scout 17B
+5. GPT-OSS 20B
+6. Qwen 3 32B
+7. Llama 3.3 70B Versatile
+8. GPT-OSS 120B
+9. Kimi K2 Instruct
+
+### For Capability (Most → Least)
+
+1. GPT-OSS 120B
+2. Llama 3.3 70B Versatile
+3. Groq Compound
+4. Llama 4 Maverick 17B
+5. Qwen 3 32B
+6. GPT-OSS 20B
+7. Llama 4 Scout 17B
+8. Groq Compound Mini
+9. Llama 3.1 8B Instant
+
+### For Long Context
+
+1. Kimi K2 Instruct (262K tokens)
+2. Llama 4 Maverick (128K tokens)
+3. Other models (32-128K tokens)
+
+### For Cost Efficiency
+
+1. Llama 3.1 8B Instant
+2. Groq Compound Mini
+3. Llama 4 Scout 17B
+4. (Larger models more expensive)
+
+## Example Workflows
+
+### Real-time Chatbot
+
+1. **Trigger**: Slack Message Received
+2. **Transform**: Format conversation
+3. **AI Agent**: Configure with Groq Compound
+4. **Groq**: Ultra-fast response
+5. **Slack**: Reply instantly
+
+**Why Groq?** Sub-second response times provide truly real-time experience.
+
+### High-Volume Text Processing
+
+1. **Trigger**: Webhook (batch of records)
+2. **Transform**: Prepare data
+3. **AI Agent**: Use Llama 3.1 8B Instant
+4. **Groq**: Process hundreds per second
+5. **Database**: Store results
+
+**Why Groq?** Can handle massive throughput efficiently.
+
+### Interactive Code Assistant
+
+1. **Trigger**: VS Code Extension Request
+2. **AI Agent**: Configure with Groq Compound
+3. **Tools**: File system, documentation
+4. **Groq**: Generate code instantly
+5. **Response**: Return to editor
+
+**Why Groq?** No lag, feels like autocomplete.
+
+### Live Translation Service
+
+1. **Trigger**: WebSocket message
+2. **Groq**: Translate with Qwen 3 32B
+3. **Response**: Return translation
+
+**Why Groq?** Fast enough for live conversation.
+
+### Smart Content Moderation
+
+1. **Trigger**: User post submitted
+2. **Groq**: Analyze with Compound Mini
+3. **Condition**: Check moderation result
+4. **Action**: Approve/flag content
+
+**Why Groq?** Doesn't slow down user experience.
+
+## Use Cases Perfect for Groq
+
+### Real-time Applications
+- **Chatbots**: Instant responses
+- **Live translation**: No perceptible lag
+- **Interactive assistants**: Natural feel
+- **Gaming NPCs**: Responsive dialogue
+
+### High-Throughput Processing
+- **Content moderation**: Process millions of items
+- **Data classification**: Massive datasets
+- **Batch summarization**: Thousands of documents
+- **Log analysis**: Real-time monitoring
+
+### Latency-Sensitive Tasks
+- **Voice assistants**: Quick voice-to-text-to-voice
+- **Code completion**: IDE autocomplete
+- **Search enhancement**: Instant results
+- **Form filling assistance**: Real-time help
+
+### Interactive Experiences
+- **Educational apps**: Instant feedback
+- **Customer support**: No waiting
+- **Creative tools**: Fast iterations
+- **Productivity apps**: Seamless integration
+
+## Performance Characteristics
+
+### Typical Speeds (Groq Compound)
+
+- **Time to first token**: 50-100ms
+- **Tokens per second**: 300-500
+- **Full response (200 tokens)**: 400-700ms
+
+### Comparison
+
+| Provider | Time to First Token | Tokens/sec |
+|----------|---------------------|------------|
+| Groq | 50-100ms | 300-500 |
+| OpenAI | 200-500ms | 50-100 |
+| Anthropic | 300-700ms | 40-80 |
+| Google | 200-400ms | 60-120 |
+
+**Note:** Speeds are approximate and vary by model and load.
+
+## Rate Limits
+
+Groq enforces rate limits:
+
+- **Free tier**: 30 requests/minute, 14,400/day
+- **Paid tier**: Higher limits based on plan
+- **Token limits**: Daily token quotas
+
+Flowbaker handles rate limiting automatically.
+
+## Pricing
+
+Groq offers competitive pricing:
+
+- **Free tier**: Generous limits for development
+- **Pay-as-you-go**: Based on tokens used
+- **Enterprise**: Custom pricing
+
+Check [Groq Pricing](https://groq.com/pricing/) for current rates.
+
+## Error Handling
+
+### Common Errors
+
+**"Invalid API key"**
+- Verify your API key is correct
+- Check it hasn't been revoked
+
+**"Rate limit exceeded"**
+- Wait for limit to reset
+- Consider upgrading your plan
+
+**"Model not available"**
+- Check model name spelling
+- Some models may have limited availability
+
+**"Service temporarily unavailable"**
+- Groq is experiencing high load
+- Retry with exponential backoff
+
+## Best Practices
+
+### Leverage Speed
+
+1. **Build real-time UX**: Design for instant responses
+2. **Parallel processing**: Run multiple requests simultaneously
+3. **Reduce buffering**: Stream responses as they arrive
+4. **Instant feedback**: Provide immediate user feedback
+
+### Model Selection
+
+1. **Start small**: Try Compound Mini first
+2. **Measure latency**: Track actual speeds
+3. **Match capability**: Don't over-engineer
+4. **Test alternatives**: Compare models for your use case
+
+### Cost Optimization
+
+1. **Use smaller models**: Often sufficient and faster
+2. **Limit output**: Set appropriate max_tokens
+3. **Cache responses**: Store common queries
+4. **Batch smartly**: Group similar requests
+
+### Quality Maintenance
+
+1. **Test thoroughly**: Fast doesn't mean less accurate
+2. **Validate outputs**: Add checking steps
+3. **Monitor performance**: Track both speed and quality
+4. **Iterate prompts**: Optimize for your use case
+
+## Limitations
+
+### Current Limitations
+
+1. **Model selection**: Fewer models than GPT/Claude
+2. **Context windows**: Smaller than some competitors (except Kimi)
+3. **Multimodal**: Currently text-only
+4. **Fine-tuning**: Limited custom model options
+
+### When to Use Alternatives
+
+- **Very long context**: Use Gemini (2M tokens)
+- **Image generation**: Use DALL-E or Midjourney
+- **Image analysis**: Use GPT-4V or Gemini
+- **Maximum capability**: Use GPT-4 or Claude Opus
+
+## Comparison: Groq vs Others
+
+### vs OpenAI
+
+**Groq advantages:**
+- 5-10x faster inference
+- Lower latency
+- More predictable performance
+
+**OpenAI advantages:**
+- More models
+- Image capabilities
+- Larger ecosystem
+
+### vs Anthropic
+
+**Groq advantages:**
+- Much faster (10x+)
+- Lower cost
+- Higher throughput
+
+**Anthropic advantages:**
+- Larger context (200K vs 32-128K)
+- Better at complex reasoning
+- Stronger safety features
+
+### vs Google Gemini
+
+**Groq advantages:**
+- Faster inference
+- More consistent latency
+- Better for real-time
+
+**Gemini advantages:**
+- Massive context (2M tokens)
+- Multimodal native
+- Free tier
+
+## Resources
+
+- [Groq Documentation](https://console.groq.com/docs)
+- [GroqCloud Console](https://console.groq.com/)
+- [Pricing Information](https://groq.com/pricing/)
+- [LPU Technology](https://groq.com/lpu/)
+- [Model Benchmarks](https://groq.com/benchmarks/)

@@ -1,0 +1,225 @@
+---
+title: 'Gmail'
+description: "Use Gmail's APIs to send, read, and manage email messages, drafts, and labels."
+---
+
+## Overview
+
+The Gmail integration allows you to interact with Gmail to send emails, manage drafts, organize messages with labels, and automate email workflows.
+
+## Configuration
+
+To set up the Gmail integration, you need to authenticate with OAuth:
+
+| Field | Description | Required |
+|-------|-------------|----------|
+| **OAuth Provider** | OAuth account for Gmail | Yes |
+
+The integration uses OAuth 2.0 to authenticate with your Google account and supports custom OAuth configurations.
+
+## Available Actions
+
+### Send Mail
+
+Send an email using your Gmail account.
+
+**Parameters:**
+- **To**: Email address(es) of the recipient(s)
+- **Cc**: Email address(es) to CC
+- **Bcc**: Email address(es) to BCC
+- **Subject**: The subject of the email
+- **Body**: The body of the email
+
+**Example:**
+```json
+{
+  "to": ["recipient@example.com"],
+  "subject": "Meeting Reminder",
+  "body": "Don't forget our meeting tomorrow at 10 AM."
+}
+```
+
+### Reply Mail
+
+Reply to an email using your Gmail account.
+
+**Parameters:**
+- **Message ID**: The message ID of the email to reply to
+- **Body**: The body of the reply email
+
+### Find Mail
+
+Find emails in your Gmail account using search queries.
+
+**Parameters:**
+- **Query**: The search query (use Gmail search syntax)
+- **Limit**: Maximum number of results to return (1-500, default 10)
+
+**Example Queries:**
+- `from:sender@example.com`
+- `subject:invoice`
+- `is:unread after:2024/01/01`
+
+### Get Mail
+
+Get details of a specific email from your Gmail account.
+
+**Parameters:**
+- **Message ID**: The message ID of the email to get
+
+### Get Mails
+
+Get multiple emails from your Gmail account.
+
+**Parameters:**
+- **Limit**: Maximum number of results to return (1-500, default 10)
+
+### Send Mail to Trash
+
+Move an email to trash.
+
+**Parameters:**
+- **Message ID**: The message ID of the email to trash
+
+### Delete Mail
+
+Permanently delete an email from your Gmail account.
+
+**Parameters:**
+- **Message ID**: The message ID of the email to delete
+
+### Mark Mail as Read
+
+Mark an email as read.
+
+**Parameters:**
+- **Message ID**: The message ID of the email to mark as read
+
+### Mark Mail as Unread
+
+Mark an email as unread.
+
+**Parameters:**
+- **Message ID**: The message ID of the email to mark as unread
+
+### Create Draft
+
+Create a draft email in your Gmail account.
+
+**Parameters:**
+- **To**: Email address(es) of the recipient(s)
+- **Cc**: Email address(es) to CC
+- **Bcc**: Email address(es) to BCC
+- **Subject**: The subject of the email
+- **Body**: The body of the email
+
+### Send Draft
+
+Send a draft email from your Gmail account.
+
+**Parameters:**
+- **Draft ID**: The draft ID of the email to send
+
+### Get Draft
+
+Get a draft email from your Gmail account.
+
+**Parameters:**
+- **Message ID**: The message ID of the draft to get
+
+### Get Drafts
+
+Get drafts from your Gmail account.
+
+**Parameters:**
+- **Limit**: Maximum number of results to return
+
+### Delete Draft
+
+Delete a draft email from your Gmail account.
+
+**Parameters:**
+- **Draft ID**: The draft ID of the email to delete
+
+### Get Labels
+
+Get labels from your Gmail account.
+
+**Parameters:**
+- **Limit**: Maximum number of results to return
+
+### Add Label
+
+Add a label to your Gmail account.
+
+**Parameters:**
+- **Label Name**: The name of the label to add
+
+### Remove Label
+
+Remove a label from your Gmail account.
+
+**Parameters:**
+- **Label ID**: The ID of the label to remove
+
+### Add Label to Email
+
+Add a label to an email in your Gmail account.
+
+**Parameters:**
+- **Message ID**: The message ID of the email
+- **Label ID**: The ID of the label to add
+
+### Remove Label from Email
+
+Remove a label from an email in your Gmail account.
+
+**Parameters:**
+- **Message ID**: The message ID of the email
+- **Label ID**: The ID of the label to remove
+
+### Get Thread
+
+Get a thread from your Gmail account.
+
+**Parameters:**
+- **Message ID**: The message ID of the thread
+
+### Get Threads
+
+Get threads from your Gmail account.
+
+**Parameters:**
+- **Limit**: Maximum number of results to return
+
+## Available Triggers
+
+### On Message Received
+
+Triggered when a new message is received in your Gmail account.
+
+## Example Workflows
+
+### Auto-Reply to Emails
+
+1. **Trigger**: On Message Received
+2. **Action**: Reply Mail with automated response
+
+### Email Organization
+
+1. **Action**: Find Mail matching criteria
+2. **Action**: Add Label to Email for organization
+3. **Action**: Mark Mail as Read
+
+### Draft Management
+
+1. **Action**: Create Draft with email content
+2. **Action**: Get Drafts to review
+3. **Action**: Send Draft when ready
+
+## Notes
+
+- Some actions are only available with custom OAuth (not default OAuth)
+- Message IDs can be obtained from trigger outputs or search results
+- Gmail search syntax supports advanced queries for filtering
+- Label IDs are different from label names

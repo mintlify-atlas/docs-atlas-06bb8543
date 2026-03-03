@@ -1,0 +1,115 @@
+---
+title: "Introduction"
+description: "Workflow automation executor that runs on your machine and connects to the Flowbaker platform"
+---
+
+## What is Flowbaker?
+
+Flowbaker Executor is a powerful workflow automation engine that runs on your machine and connects to the Flowbaker platform to execute workflows with various integrations. It enables you to automate complex tasks using integrations like Discord, GitHub, Gmail, Slack, OpenAI, and many more.
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Get up and running with Flowbaker in minutes
+  </Card>
+  <Card title="Installation" icon="download" href="/installation">
+    Install Flowbaker on your system
+  </Card>
+  <Card title="Core Concepts" icon="book" href="/concepts/workflows">
+    Learn about workflows, nodes, and executors
+  </Card>
+  <Card title="Integrations" icon="plug" href="/integrations/overview">
+    Explore 50+ available integrations
+  </Card>
+</CardGroup>
+
+## Key Features
+
+<AccordionGroup>
+  <Accordion title="50+ Integrations" icon="grid">
+    Connect to popular services including:
+    - **Communication**: Discord, Slack, Telegram, Microsoft Teams
+    - **AI & LLM**: OpenAI, Claude, Gemini
+    - **Development**: GitHub, GitLab, Jira, Linear
+    - **Databases**: PostgreSQL, MongoDB, Redis, Snowflake
+    - **Storage**: S3, Dropbox, Google Drive
+    - And many more...
+  </Accordion>
+
+  <Accordion title="Secure by Design" icon="shield">
+    - Ed25519 signature-based authentication
+    - X25519 encrypted communication
+    - Local execution on your infrastructure
+    - No credential exposure to the platform
+  </Accordion>
+
+  <Accordion title="Easy Setup" icon="sparkles">
+    - Interactive first-time setup wizard
+    - Auto-configuration and key generation
+    - Simple workspace registration
+    - Health check and status monitoring
+  </Accordion>
+
+  <Accordion title="Flexible Deployment" icon="server">
+    - Run as a standalone binary
+    - Deploy with Docker
+    - Self-host on your infrastructure
+    - Connect to multiple workspaces
+  </Accordion>
+</AccordionGroup>
+
+## How It Works
+
+<Steps>
+  <Step title="Install the Executor">
+    Download the binary or build from source, then run the setup wizard to configure your executor.
+  </Step>
+  
+  <Step title="Connect to Workspace">
+    Register your executor with the Flowbaker platform using a secure passcode-based workflow.
+  </Step>
+  
+  <Step title="Create Workflows">
+    Design workflows in the Flowbaker platform using a visual editor with drag-and-drop nodes.
+  </Step>
+  
+  <Step title="Execute Automatically">
+    Your executor receives and runs workflows assigned to it, handling all integrations locally.
+  </Step>
+</Steps>
+
+## Architecture
+
+Flowbaker uses a distributed architecture where:
+
+1. **Flowbaker Platform**: Cloud-based workflow designer and orchestrator
+2. **Flowbaker Executor**: Local agent that runs on your infrastructure (this project)
+3. **Integrations**: Node implementations that connect to external services
+
+The executor polls for assigned workflows and executes them locally, ensuring your credentials and data remain on your infrastructure.
+
+<Note>
+  The executor runs an HTTP server on port `8081` for receiving workflow executions and health checks.
+</Note>
+
+## Use Cases
+
+<CardGroup cols={2}>
+  <Card title="Automate DevOps" icon="code">
+    Trigger deployments, manage issues, and coordinate team notifications
+  </Card>
+  <Card title="Data Processing" icon="database">
+    ETL pipelines, database operations, and data transformations
+  </Card>
+  <Card title="AI Workflows" icon="brain">
+    Chain LLM calls, process data with AI, and build intelligent agents
+  </Card>
+  <Card title="Monitoring & Alerts" icon="bell">
+    Monitor systems and send alerts to Discord, Slack, or email
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<Card title="Get Started" icon="play" href="/installation">
+  Install Flowbaker and run your first workflow
+</Card>

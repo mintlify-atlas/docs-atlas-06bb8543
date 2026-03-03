@@ -1,0 +1,205 @@
+---
+title: Jira Integration
+description: Manage Jira issues, comments, and workflows with Flowbaker's comprehensive Jira integration.
+---
+
+The Jira integration allows you to automate issue tracking, project management, and workflow automation in Jira Cloud.
+
+## Authentication
+
+Connect your Jira account using OAuth 2.0:
+
+- **Jira Account** (required): OAuth authentication for Jira Cloud
+- **Webhook Secret** (optional): Secret for webhook validation
+
+## Available Actions
+
+### Issue Management
+
+#### Create Issue
+Create a new issue in a Jira project.
+
+**Parameters:**
+- `project_key` (required): Project key (e.g., 'PROJ')
+- `issue_type` (required): Issue type (e.g., 'Bug', 'Task', 'Story')
+- `summary` (required): Brief summary of the issue
+- `description` (optional): Detailed description
+- `priority` (optional): Priority level
+- `assignee` (optional): Email or username of assignee
+- `parent_key` (optional): Parent issue key for subtasks
+
+#### Get Issue
+Retrieve a single issue by its key.
+
+**Parameters:**
+- `issue_key` (required): Issue key (e.g., 'PROJ-123')
+
+#### Get Many Issues
+Search for multiple issues using JQL.
+
+**Parameters:**
+- `jql_query` (required): JQL query string
+- `max_results` (optional): Maximum results (default: 50, max: 100)
+
+#### Update Issue
+Update an existing issue.
+
+**Parameters:**
+- `issue_key` (required): Issue key to update
+- `summary` (optional): Updated summary
+- `description` (optional): Updated description
+- `priority` (optional): Updated priority
+- `assignee` (optional): Updated assignee
+- `status` (optional): Updated status
+
+#### Delete Issue
+Delete an issue.
+
+**Parameters:**
+- `issue_key` (required): Issue key to delete
+
+#### Get Issue Changelog
+Retrieve the change history of an issue.
+
+**Parameters:**
+- `issue_key` (required): Issue key
+
+#### Get Issue Status
+Get the current status of an issue.
+
+**Parameters:**
+- `issue_key` (required): Issue key
+
+### Comment Management
+
+#### Add Comment
+Add a comment to an issue.
+
+**Parameters:**
+- `issue_key` (required): Issue key
+- `body` (required): Comment content
+
+#### Get Comment
+Retrieve a specific comment.
+
+**Parameters:**
+- `issue_key` (required): Issue key
+- `comment_id` (required): Comment ID
+
+#### Get Many Comments
+Retrieve all comments from an issue.
+
+**Parameters:**
+- `issue_key` (required): Issue key
+- `max_results` (optional): Maximum results (default: 50, max: 100)
+
+#### Update Comment
+Update an existing comment.
+
+**Parameters:**
+- `issue_key` (required): Issue key
+- `comment_id` (required): Comment ID
+- `body` (required): Updated comment content
+
+#### Remove Comment
+Delete a comment from an issue.
+
+**Parameters:**
+- `issue_key` (required): Issue key
+- `comment_id` (required): Comment ID to remove
+
+### Notifications
+
+#### Create Email Notification
+Send email notifications for an issue.
+
+**Parameters:**
+- `issue_key` (required): Issue key
+- `recipients` (required): Array of email addresses
+- `subject` (required): Email subject
+- `message` (required): Email body content
+
+### User Management
+
+#### Get User
+Retrieve user information.
+
+**Parameters:**
+- `account_id` (optional): User's account ID (preferred)
+- `username` (optional): Username (legacy)
+- `email_address` (optional): Email address (search method)
+
+## Available Triggers
+
+Jira Event Listener supports comprehensive webhook events:
+
+### Issue Events
+- Issue Created
+- Issue Updated
+- Issue Deleted
+
+### Comment Events
+- Comment Created
+- Comment Updated
+- Comment Deleted
+
+### Project Events
+- Project Created
+- Project Updated
+- Project Deleted
+
+### Sprint Events (Agile)
+- Sprint Created
+- Sprint Started
+- Sprint Closed
+- Sprint Deleted
+
+### Version Events
+- Version Created
+- Version Released
+- Version Unreleased
+
+### Other Events
+- Board Events
+- User Events
+- Worklog Events
+- Issue Link Events
+
+## Configuration Example
+
+```json
+{
+  "project_key": "PROJ",
+  "issue_type": "Bug",
+  "summary": "Application crashes on startup",
+  "description": "Detailed description of the bug",
+  "priority": "High",
+  "assignee": "user@example.com"
+}
+```
+
+## JQL Query Examples
+
+```jql
+// Open issues in project
+project = PROJ AND status = Open
+
+// High priority bugs
+project = PROJ AND issuetype = Bug AND priority = High
+
+// Issues updated this week
+project = PROJ AND updated >= startOfWeek()
+
+// Unassigned issues
+project = PROJ AND assignee is EMPTY
+```
+
+## Best Practices
+
+1. Use project keys consistently in uppercase
+2. Leverage JQL for powerful issue searches
+3. Use custom fields when needed via the API
+4. Set up webhooks to react to specific events
+5. Handle assignee resolution by email or account ID
+6. Test with non-production projects first
+7. Use appropriate issue types for your workflow

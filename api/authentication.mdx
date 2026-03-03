@@ -1,0 +1,190 @@
+---
+title: 'Authentication'
+description: 'API signature verification using ED25519'
+---
+
+## Overview
+
+The Flowbaker Executor API uses **ED25519 digital signatures** for authentication. This cryptographic signature scheme ensures that requests are authentic and haven't been tampered with in transit.
+
+## Authentication Method
+
+All workspace-scoped API endpoints require two headers:
+
+- `X-API-Signature` - ED25519 signature of the canonical request
+- `X-API-Timestamp` - Unix timestamp when the request was signed
+
+## Signature Generation Process
+
+To authenticate an API request, follow these steps:
+
+### 1. Create the Canonical Request
+
+The canonical request is a standardized string representation:
+
+```
+{METHOD}\n{PATH}\n\n{TIMESTAMP}\n{BODY_HASH}
+```
+
+Where:
+- `METHOD` - HTTP method (GET, POST, DELETE, etc.)
+- `PATH` - Request path (e.g., `/workspaces/ws-123/executions`)
+- `TIMESTAMP` - Unix timestamp as a string
+- `BODY_HASH` - SHA256 hash of request body in format `sha256:{hex_hash}`
+
+**Example canonical request:**
+```
+POST
+/workspaces/ws-abc123/executions
+
+1709467200
+sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+```
+
+### 2. Sign the Canonical Request
+
+Sign the canonical request using your ED25519 private key:
+
+```go
+signature := ed25519.Sign(privateKey, []byte(canonicalRequest))
+signatureB64 := base64.StdEncoding.EncodeToString(signature)
+```
+
+### 3. Add Headers to Request
+
+Include the signature and timestamp in your HTTP headers:
+
+```
+X-API-Signature: ed25519={base64_signature}
+X-API-Timestamp: {unix_timestamp}
+```
+
+## Signature Verification
+
+The server verifies requests using the following process:
+
+### 1. Parse Headers
+
+Extract the signature and timestamp from request headers.
+
+### 2. Validate Timestamp
+
+The timestamp must be within a **5-minute window** of the current server time. This prevents replay attacks.
+
+```go
+timeDiff := abs(currentTime - requestTimestamp)
+if timeDiff > 300 { // 5 minutes
+    return error("timestamp outside allowed window")
+}
+```
+
+### 3. Reconstruct Canonical Request
+
+The server reconstructs the same canonical request format using:
+- HTTP method from the request
+- Request path
+- Timestamp from header
+- SHA256 hash of request body
+
+### 4. Verify Signature
+
+Verify the signature using the workspace's ED25519 public key:
+
+```go
+valid := ed25519.Verify(publicKey, canonicalRequest, signature)
+```
+
+## Configuration
+
+The executor supports two authentication modes:
+
+### Static API Key (Single Workspace)
+
+Set the `STATIC_API_SIGNATURE_PUBLIC_KEY` environment variable with a base64-encoded ED25519 public key. This key will be used for all workspaces.
+
+```bash
+export STATIC_API_SIGNATURE_PUBLIC_KEY="your-base64-public-key"
+```
+
+### Workspace-Aware (Multiple Workspaces)
+
+Provide a `WorkspaceAPIKeyProvider` implementation that returns the appropriate public key for each workspace ID. This is configured programmatically when initializing the server.
+
+## Implementation Example
+
+Here's a complete example in Go:
+
+```go
+package main
+
+import (
+    "crypto/ed25519"
+    "crypto/sha256"
+    "encoding/base64"
+    "fmt"
+    "strconv"
+    "time"
+)
+
+type APIRequestSigner struct {
+    privateKey ed25519.PrivateKey
+}
+
+func (s *APIRequestSigner) SignRequest(method, path string, body []byte) (map[string]string, error) {
+    timestamp := time.Now().Unix()
+    timestampStr := strconv.FormatInt(timestamp, 10)
+
+    // Create body hash
+    bodyHash := sha256.Sum256(body)
+    bodyHashStr := fmt.Sprintf("sha256:%x", bodyHash)
+
+    // Create canonical request
+    canonicalRequest := fmt.Sprintf("%s\\n%s\\n\\n%s\\n%s", method, path, timestampStr, bodyHashStr)
+
+    // Sign the canonical request
+    signature := ed25519.Sign(s.privateKey, []byte(canonicalRequest))
+    signatureB64 := base64.StdEncoding.EncodeToString(signature)
+
+    return map[string]string{
+        "X-API-Signature": fmt.Sprintf("ed25519=%s", signatureB64),
+        "X-API-Timestamp": timestampStr,
+    }, nil
+}
+```
+
+## Security Best Practices
+
+<Warning>
+**Never expose your private key**. Store it securely and never commit it to version control.
+</Warning>
+
+1. **Protect Private Keys** - Store ED25519 private keys in secure secret management systems
+2. **Use HTTPS** - Always use TLS/HTTPS in production to prevent interception
+3. **Respect Time Windows** - Keep system clocks synchronized to avoid timestamp validation failures
+4. **Rotate Keys Regularly** - Implement a key rotation policy for enhanced security
+5. **Monitor Failed Attempts** - Log and alert on repeated authentication failures
+
+## Troubleshooting
+
+### "Invalid signature format"
+
+Ensure your `X-API-Signature` header starts with `ed25519=` followed by the base64-encoded signature.
+
+### "Timestamp outside allowed window"
+
+Your system clock may be out of sync. Ensure the timestamp is within 5 minutes of the server time.
+
+### "Signature verification failed"
+
+Verify that:
+- You're using the correct private/public key pair
+- The canonical request format exactly matches the server's expectation
+- The body hash is computed correctly
+- No whitespace or encoding issues in the signature
+
+## Source Code Reference
+
+Implementation details can be found in:
+- Signature generation: `internal/auth/api_signature.go:34`
+- Signature verification: `internal/auth/api_signature.go:77`
+- Middleware: `internal/middlewares/api_signature_middleware.go:36`

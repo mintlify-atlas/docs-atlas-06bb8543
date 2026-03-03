@@ -1,0 +1,140 @@
+---
+title: 'Google Sheets'
+description: 'Use Google Sheets API to manage spreadsheets, worksheets, and data.'
+---
+
+## Overview
+
+The Google Sheets integration allows you to create, read, update, and delete spreadsheets and worksheets, as well as manage data within Google Sheets.
+
+## Configuration
+
+To set up the Google Sheets integration, you need to authenticate with OAuth:
+
+| Field | Description | Required |
+|-------|-------------|----------|
+| **Account** | OAuth account for Google Sheets | Yes |
+
+The integration uses OAuth 2.0 to authenticate with your Google account and supports custom OAuth configurations.
+
+## Available Actions
+
+### Create Sheet
+
+Create a new spreadsheet in Google Sheets.
+
+**Parameters:**
+- **Title**: The title of the new spreadsheet
+
+### Delete Sheet
+
+Delete an existing spreadsheet from Google Sheets.
+
+**Parameters:**
+- **Spreadsheet**: The ID of the spreadsheet to delete
+
+### Create Work Sheet
+
+Create a new worksheet in a spreadsheet.
+
+**Parameters:**
+- **Spreadsheet**: The ID of the spreadsheet to create worksheet in
+- **Title**: The title of the new worksheet
+
+### Delete Work Sheet
+
+Delete a worksheet from a spreadsheet.
+
+**Parameters:**
+- **Spreadsheet**: The ID of the spreadsheet
+- **Worksheet**: The ID of the worksheet to delete
+
+### Copy Spread Sheet
+
+Copy an existing spreadsheet in Google Sheets.
+
+**Parameters:**
+- **Spreadsheet**: The ID of the spreadsheet to copy
+- **Title**: The title of the new spreadsheet
+
+### Copy Work Sheet
+
+Copy a worksheet into same or different spreadsheet.
+
+**Parameters:**
+- **Spreadsheet**: The ID of the source spreadsheet
+- **Worksheet**: The ID of the worksheet to copy
+- **Title**: The title of the new worksheet
+- **Destination Spreadsheet**: The ID of the destination spreadsheet
+
+### Add Column
+
+Add a column to an existing worksheet.
+
+**Parameters:**
+- **Spreadsheet**: The ID of the spreadsheet
+- **Worksheet**: The ID of the worksheet
+- **Content**: The content of the new column header
+- **Index**: The index where to insert the column
+
+### Add Data
+
+Add bulk data to a worksheet.
+
+**Parameters:**
+- **Spreadsheet**: The ID of the spreadsheet
+- **Worksheet**: The ID of the worksheet to add data
+- **Data**: The JSON data to add (can be an array of objects or a single object)
+
+**Example:**
+```json
+[
+  {"name": "John Doe", "email": "john@example.com", "age": 30},
+  {"name": "Jane Smith", "email": "jane@example.com", "age": 25}
+]
+```
+
+### Get Rows
+
+Get rows from a worksheet, optionally filtered by conditions.
+
+**Parameters:**
+- **Spreadsheet**: The ID of the spreadsheet
+- **Worksheet**: The ID of the worksheet
+- **Match Type**: How to match multiple conditions (AND or OR)
+- **Conditions**: Search conditions (column and value pairs)
+
+**Example Conditions:**
+```json
+{
+  "match_type": "and",
+  "conditions": [
+    {"column": "A", "value": "John Doe"},
+    {"column": "status", "value": "active"}
+  ]
+}
+```
+
+## Example Workflows
+
+### Creating and Populating a Spreadsheet
+
+1. **Create Sheet**: Create a new spreadsheet with title "Sales Data"
+2. **Add Data**: Add sales records as JSON array
+
+### Filtering Data from a Sheet
+
+1. **Get Rows**: Retrieve rows where column "status" equals "active" and "region" equals "West"
+
+### Managing Worksheets
+
+1. **Create Work Sheet**: Add a new worksheet called "Q1 Sales"
+2. **Copy Work Sheet**: Duplicate the worksheet to another spreadsheet
+3. **Delete Work Sheet**: Remove old worksheets
+
+## Tips
+
+- When adding data, the integration automatically creates headers if they don't exist
+- Use column letters (A, B, C) or header names when filtering rows
+- The Add Data action flattens nested JSON objects automatically
+- Spreadsheet and worksheet IDs can be found in the Google Sheets URL

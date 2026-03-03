@@ -1,0 +1,347 @@
+---
+title: "Microsoft Teams Integration"
+description: "Send messages to channels and chats, manage Teams resources"
+---
+
+The Microsoft Teams integration enables you to automate messaging, manage channels, and interact with Microsoft Teams using the Microsoft Graph API.
+
+## Authentication
+
+The Teams integration uses OAuth 2.0 authentication with Microsoft 365.
+
+### Setting Up OAuth
+
+1. Go to [Azure Portal](https://portal.azure.com/)
+2. Navigate to "Azure Active Directory" → "App registrations"
+3. Click "New registration"
+4. Configure your app:
+   - **Name**: Choose a name (e.g., "Flowbaker Teams Integration")
+   - **Supported account types**: Choose appropriate option
+   - **Redirect URI**: Use the callback URL provided by Flowbaker
+5. After creation, note the **Application (client) ID**
+6. Go to "Certificates & secrets" → "New client secret"
+7. Copy the secret value immediately (it won't be shown again)
+8. Go to "API permissions" → "Add a permission" → "Microsoft Graph"
+9. Add these delegated permissions:
+   - `ChannelMessage.Read.All` - Read channel messages
+   - `ChannelMessage.Send` - Send channel messages
+   - `Chat.ReadWrite` - Read and write chat messages
+   - `Team.ReadBasic.All` - Read basic team info
+   - `Channel.ReadBasic.All` - Read basic channel info
+10. Grant admin consent for these permissions
+
+### Connecting to Flowbaker
+
+1. In Flowbaker, go to workspace settings
+2. Navigate to "Credentials" → "Add Credential"
+3. Select "Microsoft Teams" and click "Connect with OAuth"
+4. Sign in with your Microsoft 365 account
+5. Grant the requested permissions
+6. Your Teams account is now connected
+
+## Available Actions
+
+### Send Channel Message
+
+Send a message to a Microsoft Teams channel.
+
+**Parameters:**
+- `channel_id` (required): Channel ID in format `teamId:channelId`
+- `message` (required): The message content to send
+- `content_type` (optional): "text" or "html" (default: "html")
+
+**Example:**
+```json
+{
+  "channel_id": "19:abcd1234@thread.tacv2:ef567890",
+  "message": "<h1>Hello from Flowbaker!</h1>",
+  "content_type": "html"
+}
+```
+
+### Send Chat Message
+
+Send a message to a Teams chat (1:1 or group chat).
+
+**Parameters:**
+- `chat_id` (required): The chat ID
+- `message` (required): The message content
+- `content_type` (optional): "text" or "html" (default: "html")
+
+### Create Channel
+
+Create a new channel in a Teams team.
+
+**Parameters:**
+- `team_id` (required): The ID of the team
+- `channel_name` (required): Name for the new channel
+- `channel_description` (optional): Description for the channel
+- `channel_type` (optional): "standard" or "private" (default: "standard")
+
+**Example:**
+```json
+{
+  "team_id": "19:abcd1234@thread.tacv2",
+  "channel_name": "Project Updates",
+  "channel_description": "Channel for project status updates",
+  "channel_type": "standard"
+}
+```
+
+### Create Team
+
+Create a new Microsoft Teams team.
+
+**Parameters:**
+- `team_name` (required): Name for the new team
+- `team_description` (optional): Description for the team
+- `team_visibility` (optional): "private" or "public" (default: "private")
+
+### Delete Channel
+
+Delete a channel from a team.
+
+**Parameters:**
+- `channel_id` (required): Channel ID in format `teamId:channelId`
+
+**Note:** You cannot delete the General channel.
+
+### Get Channel
+
+Get details of a specific channel.
+
+**Parameters:**
+- `team_id` (required): The team ID
+- `channel_id` (required): The channel ID (just the channel part, not the full teamId:channelId)
+
+### Get Many Channels
+
+Get all channels in a team.
+
+**Parameters:**
+- `team_id` (required): The team ID
+
+**Returns:** Array of channel objects with details.
+
+### Update Channel
+
+Update a channel's name or description.
+
+**Parameters:**
+- `team_id` (required): The team ID
+- `channel_id` (required): The channel ID
+- `channel_name` (optional): New channel name
+- `channel_description` (optional): New channel description
+
+### Get Channel Messages
+
+Retrieve messages from a channel.
+
+**Parameters:**
+- `channel_id` (required): Channel ID in format `teamId:channelId`
+- `top` (optional): Number of messages to retrieve
+
+### Get Chat Message
+
+Get a specific message from a chat.
+
+**Parameters:**
+- `chat_id` (required): The chat ID
+- `message_id` (required): The message ID
+
+### Get Many Chat Messages
+
+Retrieve messages from a chat.
+
+**Parameters:**
+- `chat_id` (required): The chat ID
+- `top` (optional): Number of messages to retrieve
+
+## Available Triggers
+
+### Microsoft Teams Event Listener
+
+Listen for events in Microsoft Teams channels.
+
+**Configuration:**
+- `channel_id` (required): Channel to monitor (format: `teamId:channelId`)
+- `selected_events` (required): Select events to monitor:
+  - **On Channel Message Posted**: Triggers when a message is posted in a channel
+
+**Event Data:**
+- `message`: The message content
+- `from`: Information about the sender
+- `channel_id`: The channel where the message was posted
+- `timestamp`: When the message was sent
+
+**Note:** This trigger requires a Microsoft Teams Business Basic license or higher.
+
+## Channel ID Format
+
+Teams uses a special format for channel IDs:
+
+**Format:** `teamId:channelId`
+
+**Example:** `19:abcd1234efgh5678@thread.tacv2:ef567890abcd1234`
+
+The Flowbaker channel picker automatically formats IDs correctly for you.
+
+## Finding IDs
+
+### Team ID
+
+1. In Teams, click on the team name
+2. Click "More options" (three dots)
+3. Select "Get link to team"
+4. The team ID is in the URL: `groupId=TEAM_ID`
+
+### Channel ID
+
+1. Right-click on a channel
+2. Select "Get link to channel"
+3. The URL contains both team and channel IDs
+
+### Chat ID
+
+1. Open the chat
+2. Look at the URL in your browser
+3. The chat ID is after `/conversations/`
+
+## Message Formatting
+
+Teams supports HTML formatting for rich messages:
+
+### HTML Formatting
+
+```html
+<h1>Heading 1</h1>
+<h2>Heading 2</h2>
+<p><strong>Bold text</strong></p>
+<p><em>Italic text</em></p>
+<p><u>Underlined text</u></p>
+<ul>
+  <li>Bullet point 1</li>
+  <li>Bullet point 2</li>
+</ul>
+<a href="https://example.com">Link text</a>
+```
+
+### Mentions
+
+To mention a user:
+```html
+<at id="0">John Doe</at>
+```
+
+## Example Workflows
+
+### Daily Standup Bot
+
+1. **Trigger**: Cron (weekdays at 9 AM)
+2. **HTTP**: Fetch team updates from API
+3. **Transform**: Format standup message
+4. **Teams**: Send Channel Message
+
+### GitHub Integration
+
+1. **Trigger**: Webhook (from GitHub)
+2. **Condition**: Filter for PR events
+3. **Transform**: Format PR information
+4. **Teams**: Send Channel Message with PR details
+
+### Support Ticket System
+
+1. **Trigger**: Teams Event Listener (#support channel)
+2. **Condition**: Check for ticket keywords
+3. **Transform**: Extract ticket details
+4. **Jira**: Create issue
+5. **Teams**: Send Chat Message with ticket number
+
+### Meeting Scheduler
+
+1. **Trigger**: Teams Event Listener
+2. **OpenAI**: Parse meeting request
+3. **Google Calendar**: Create event
+4. **Teams**: Send Chat Message with confirmation
+
+## Permissions Required
+
+Ensure your app registration has these Microsoft Graph permissions:
+
+**For messaging:**
+- `ChannelMessage.Send` - Send messages to channels
+- `ChatMessage.Send` - Send messages to chats
+
+**For reading:**
+- `ChannelMessage.Read.All` - Read channel messages
+- `Chat.Read` - Read chat messages
+- `Channel.ReadBasic.All` - Read channel info
+- `Team.ReadBasic.All` - Read team info
+
+**For management:**
+- `Channel.Create` - Create channels
+- `Channel.Delete.All` - Delete channels
+- `Team.Create` - Create teams
+
+## Rate Limits
+
+Microsoft Graph API has throttling limits:
+
+- **Per app per tenant**: 2000 requests per second
+- **Per app across all tenants**: 50,000 requests per second
+
+Flowbaker automatically handles rate limiting and retries.
+
+## Troubleshooting
+
+### "Forbidden" Error
+
+The app doesn't have the necessary permissions. Check:
+1. Required permissions are added in Azure Portal
+2. Admin consent has been granted
+3. The user has access to the team/channel
+
+### "Not Found" Error
+
+The team, channel, or chat ID is incorrect or doesn't exist.
+
+### "Invalid Authentication Token"
+
+The OAuth token has expired. Reconnect your Teams account in Flowbaker.
+
+### Messages Not Appearing
+
+Check that:
+1. The channel ID format is correct (`teamId:channelId`)
+2. The bot has been added to the team
+3. Permissions include `ChannelMessage.Send`
+
+### Trigger Not Firing
+
+Ensure:
+1. You have a Business Basic license or higher
+2. The channel ID is correct
+3. Change notifications are enabled in Azure
+
+## Licensing Requirements
+
+- **Basic messaging**: Available with all Microsoft 365 plans
+- **Event subscriptions** (triggers): Requires Business Basic or higher
+- **Some advanced features**: May require Business Premium or Enterprise
+
+## Best Practices
+
+1. **Use HTML formatting** for rich, readable messages
+2. **Channel organization** - create dedicated channels for automated messages
+3. **Error handling** - add error handling to your workflows
+4. **Test in private teams** before deploying to production
+5. **Respect rate limits** to avoid throttling
+6. **Use mentions sparingly** to avoid notification fatigue
+7. **Monitor permissions** - ensure your app has necessary rights
+
+## Resources
+
+- [Microsoft Graph API Documentation](https://docs.microsoft.com/en-us/graph/)
+- [Teams API Reference](https://docs.microsoft.com/en-us/graph/api/resources/teams-api-overview)
+- [Permissions Reference](https://docs.microsoft.com/en-us/graph/permissions-reference)
+- [Azure Portal](https://portal.azure.com/)

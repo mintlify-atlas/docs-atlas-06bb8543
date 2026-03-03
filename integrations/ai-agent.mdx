@@ -1,0 +1,448 @@
+---
+title: "AI Agent Integration"
+description: "Build autonomous AI agents that can use tools to complete complex tasks"
+---
+
+The AI Agent integration enables you to create intelligent, autonomous agents that can use tools and make decisions to accomplish complex, multi-step tasks.
+
+## What is an AI Agent?
+
+An AI agent is an autonomous system that:
+
+1. **Receives a goal or task** from the user
+2. **Plans its approach** to accomplish the task
+3. **Uses tools** to interact with systems and gather information
+4. **Makes decisions** based on results
+5. **Iterates** until the task is complete
+6. **Returns results** to the user
+
+### Agent vs Traditional Workflow
+
+**Traditional Workflow:**
+- You define every step
+- Fixed, predetermined path
+- Same execution every time
+- Fails if unexpected situations occur
+
+**AI Agent:**
+- You define the goal
+- Agent decides the steps
+- Adapts to different situations
+- Handles unexpected scenarios
+- Uses tools as needed
+
+## Core Components
+
+An AI agent in Flowbaker consists of:
+
+### 1. Language Model (LLM)
+
+The "brain" of the agent that:
+- Understands the task
+- Plans actions
+- Makes decisions
+- Generates responses
+
+**Supported LLMs:**
+- OpenAI (GPT-4, GPT-5, O-series)
+- Anthropic (Claude)
+- Google Gemini
+- Groq
+
+### 2. Memory (Optional)
+
+Stores conversation history and context:
+- Remembers previous interactions
+- Maintains context across sessions
+- Enables multi-turn conversations
+
+**Supported Memory Stores:**
+- MongoDB
+- PostgreSQL
+- Redis
+- Flowbaker Agent Memory (hosted)
+
+### 3. Tools
+
+Actions the agent can perform:
+- Query databases
+- Call APIs
+- Send messages
+- Search information
+- Execute workflows
+- Any Flowbaker integration
+
+### 4. System Prompt
+
+Instructions that guide the agent's behavior:
+- Define the agent's role
+- Set boundaries and rules
+- Specify output format
+- Guide decision-making
+
+## Creating an AI Agent
+
+### Step 1: Add AI Agent Node
+
+1. Drag "AI Agent" node onto your canvas
+2. Connect it to a trigger (Webhook, Slack, etc.)
+
+### Step 2: Configure LLM
+
+1. Drag an LLM node (OpenAI, Claude, etc.) onto canvas
+2. Place it inside the AI Agent node boundaries
+3. Select the model to use
+4. Configure temperature and other settings
+5. Add credentials
+
+### Step 3: Configure Memory (Optional)
+
+1. Drag a memory node (MongoDB, Redis, etc.)
+2. Place it inside the AI Agent boundaries
+3. Configure connection details
+4. Set session ID
+
+### Step 4: Add Tools
+
+1. Drag tool nodes onto canvas
+2. Connect them to the agent's "Tools" input
+3. Configure each tool's parameters
+4. Mark fields as "Provided by Agent"
+
+### Step 5: Configure Agent
+
+**System Prompt:**
+```
+You are a helpful customer support agent. You can:
+- Look up customer orders in the database
+- Check inventory availability
+- Send emails to customers
+- Create support tickets
+
+Always be polite and professional.
+```
+
+**Prompt:**
+```
+{{ $input.message }}
+```
+
+**Max Steps:** 30 (default)
+
+**Recent Messages Limit:** 10 (loads last 10 messages from memory)
+
+## Tool Configuration
+
+Tools are regular Flowbaker integration nodes that the agent can use.
+
+### Marking Parameters as "Provided by Agent"
+
+1. Add an integration node (e.g., Database Query)
+2. Connect it to the agent's tools input
+3. For each parameter:
+   - Click the parameter
+   - Check "Provided by Agent"
+   - The agent will determine this value
+
+### Example: Database Query Tool
+
+```json
+{
+  "query": "Provided by Agent",
+  "table": "orders",
+  "connection_id": "my-postgres-db"
+}
+```
+
+The agent will:
+- Determine what query to run
+- Execute the query
+- Use the results to continue
+
+### Tool Best Practices
+
+1. **Descriptive names**: Help the agent understand purpose
+2. **Clear descriptions**: Explain what the tool does
+3. **Appropriate permissions**: Grant only necessary access
+4. **Error handling**: Tools should handle errors gracefully
+5. **Validation**: Validate agent-provided inputs
+
+## Memory Management
+
+### Session IDs
+
+Session IDs group related conversations:
+
+```json
+{
+  "session_id": "user-{{ $trigger.user_id }}"
+}
+```
+
+This creates a unique session per user.
+
+### MongoDB Memory
+
+```json
+{
+  "database": "flowbaker",
+  "collection": "agent_memory",
+  "session_id": "{{ $input.session_id }}"
+}
+```
+
+### Redis Memory
+
+```json
+{
+  "key_prefix": "agent:",
+  "session_id": "{{ $input.session_id }}"
+}
+```
+
+### PostgreSQL Memory
+
+```json
+{
+  "table_prefix": "agent_",
+  "session_id": "{{ $input.session_id }}"
+}
+```
+
+### Flowbaker Agent Memory
+
+Hosted memory solution (no setup required):
+
+```json
+{
+  "session_id": "{{ $input.session_id }}"
+}
+```
+
+## Example Use Cases
+
+### Customer Support Agent
+
+**Tools:**
+- Query customer database
+- Search knowledge base
+- Create support ticket
+- Send email
+
+**System Prompt:**
+```
+You are a customer support agent. Help customers by:
+1. Looking up their order information
+2. Searching the knowledge base for solutions
+3. Creating support tickets for complex issues
+4. Sending follow-up emails
+
+Be empathetic and professional.
+```
+
+### DevOps Assistant
+
+**Tools:**
+- Query application logs
+- Check server status
+- Restart services
+- Send Slack alerts
+
+**System Prompt:**
+```
+You are a DevOps assistant. Monitor and maintain infrastructure by:
+1. Checking logs for errors
+2. Monitoring server health
+3. Restarting failed services
+4. Alerting the team about issues
+
+Take action automatically for routine issues.
+```
+
+### Research Assistant
+
+**Tools:**
+- Web search
+- Database query
+- Summarize documents
+- Generate reports
+
+**System Prompt:**
+```
+You are a research assistant. Help with research by:
+1. Searching for relevant information
+2. Querying research databases
+3. Summarizing findings
+4. Generating comprehensive reports
+
+Be thorough and cite sources.
+```
+
+### Sales Agent
+
+**Tools:**
+- CRM lookup
+- Send email
+- Schedule meeting
+- Update deal status
+
+**System Prompt:**
+```
+You are a sales agent. Manage leads by:
+1. Looking up lead information in CRM
+2. Sending personalized follow-ups
+3. Scheduling calls and demos
+4. Updating deal stages
+
+Be persuasive but not pushy.
+```
+
+### Data Analysis Agent
+
+**Tools:**
+- Query databases
+- Run analytics
+- Generate visualizations
+- Export reports
+
+**System Prompt:**
+```
+You are a data analyst. Analyze data by:
+1. Querying relevant databases
+2. Running statistical analysis
+3. Identifying trends and insights
+4. Creating clear visualizations
+
+Be accurate and explain your methodology.
+```
+
+## Advanced Configuration
+
+### Max Steps
+
+Maximum iterations the agent can take:
+
+- **Lower (5-10)**: Simple, straightforward tasks
+- **Medium (10-30)**: General purpose (default)
+- **Higher (30-50)**: Complex, multi-step tasks
+
+**Warning:** Higher values = more LLM calls = higher cost
+
+### Recent Messages Limit
+
+Number of previous messages to load from memory:
+
+- **0**: Load all messages (can be slow)
+- **5-10**: Recent context only (recommended)
+- **20+**: Extended context for complex conversations
+
+### Temperature
+
+Set on the LLM node:
+
+- **0.0-0.3**: More focused, deterministic
+- **0.4-0.7**: Balanced (recommended)
+- **0.8-1.0**: More creative, varied
+
+## Monitoring & Debugging
+
+### Viewing Agent Execution
+
+In workflow execution logs, you can see:
+
+1. **Agent thoughts**: What the agent is planning
+2. **Tool calls**: Which tools are being used
+3. **Tool results**: What data tools returned
+4. **Final response**: The agent's conclusion
+
+### Common Issues
+
+**Agent gets stuck in loops:**
+- Reduce max steps
+- Improve system prompt clarity
+- Check tool error messages
+- Verify tool outputs are useful
+
+**Agent doesn't use tools:**
+- Make tool descriptions clearer
+- Check "Provided by Agent" settings
+- Verify tools are connected
+- Improve system prompt
+
+**Agent makes poor decisions:**
+- Refine system prompt
+- Add more examples
+- Use a more capable model
+- Add validation tools
+
+**Memory not working:**
+- Check session ID format
+- Verify database connection
+- Confirm memory node is connected
+- Check credentials
+
+## Cost Management
+
+AI agents can be expensive due to:
+
+1. **Multiple LLM calls**: Each step uses tokens
+2. **Long context**: Memory increases token usage
+3. **Tool execution**: Each tool call adds overhead
+
+### Cost Optimization
+
+1. **Limit max steps**: Prevent runaway execution
+2. **Use smaller models**: GPT-3.5, Claude Haiku, Gemini Flash
+3. **Limit context**: Reduce recent messages
+4. **Optimize prompts**: Be concise and clear
+5. **Cache responses**: For repeated queries
+6. **Use Groq**: For speed-sensitive tasks
+
+## Security Considerations
+
+### Tool Access
+
+1. **Principle of least privilege**: Give minimal necessary access
+2. **Validate inputs**: Don't trust agent-provided values blindly
+3. **Sandbox execution**: Isolate dangerous operations
+4. **Audit logs**: Track all agent actions
+
+### Data Privacy
+
+1. **Don't store sensitive data** in system prompts
+2. **Encrypt memory stores**
+3. **Limit data exposure** to tools
+4. **Compliance**: Ensure GDPR/HIPAA compliance if needed
+
+## Best Practices
+
+### System Prompt Design
+
+1. **Be specific**: Clearly define the agent's role
+2. **Set boundaries**: Specify what agent can/cannot do
+3. **Provide examples**: Show desired behavior
+4. **Include rules**: Add important constraints
+5. **Define output format**: Specify how to respond
+
+### Tool Design
+
+1. **Single purpose**: Each tool does one thing well
+2. **Clear names**: Use descriptive, unambiguous names
+3. **Good descriptions**: Explain when to use the tool
+4. **Validation**: Check agent-provided inputs
+5. **Error handling**: Return useful error messages
+
+### Testing
+
+1. **Test incrementally**: Start with one tool
+2. **Try edge cases**: Test unusual scenarios
+3. **Monitor costs**: Track token usage
+4. **Review logs**: Check agent reasoning
+5. **Iterate prompts**: Refine based on results
+
+## Resources
+
+- [AI Agent Examples](https://github.com/flowbaker/examples)
+- [OpenAI Integration](/integrations/openai)
+- [Anthropic Integration](/integrations/anthropic)
+- [Gemini Integration](/integrations/gemini)

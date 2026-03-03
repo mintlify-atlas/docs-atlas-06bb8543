@@ -1,0 +1,199 @@
+---
+title: "Discord Integration"
+description: "Send messages, manage channels, and interact with Discord servers"
+---
+
+The Discord integration allows you to automate interactions with Discord servers using bot functionality.
+
+## Authentication
+
+To use the Discord integration, you need to provide a Discord bot token.
+
+### Getting Your Bot Token
+
+1. Go to the [Discord Developer Portal](https://discord.com/developers/applications)
+2. Create a new application or select an existing one
+3. Navigate to the "Bot" section in the left sidebar
+4. Click "Add Bot" if you haven't created one yet
+5. Under the bot's username, click "Reset Token" or "Copy" to get your bot token
+6. **Important**: Enable the required intents:
+   - Message Content Intent (for reading message content)
+   - Server Members Intent (if you need member information)
+   - Presence Intent (if you need presence data)
+
+### Adding Credentials to Flowbaker
+
+1. Navigate to your workspace settings
+2. Go to "Credentials" > "Add Credential"
+3. Select "Discord" from the integration list
+4. Paste your bot token
+5. Save the credential
+
+## Available Actions
+
+### Send Message
+
+Send a text message to a Discord channel.
+
+**Parameters:**
+- `guild_id` (required): The ID of the Discord server (guild)
+- `channel_id` (required): The ID of the channel to send the message to
+- `content` (required): The text content of the message
+
+**Example:**
+```json
+{
+  "guild_id": "123456789012345678",
+  "channel_id": "987654321098765432",
+  "content": "Hello from Flowbaker!"
+}
+```
+
+### Get Messages
+
+Retrieve messages from a Discord channel.
+
+**Parameters:**
+- `guild_id` (required): The ID of the Discord server
+- `channel_id` (required): The ID of the channel
+- `amount` (required): Number of messages to retrieve (max: 100)
+- `before_id` (optional): Get messages before this message ID
+- `after_id` (optional): Get messages after this message ID
+
+**Returns:** Array of message objects containing:
+- `message_id`: The message ID
+- `content`: The message text
+- `author`: Information about the message author
+- `timestamp`: When the message was sent
+
+### Get Message By ID
+
+Retrieve a specific message by its ID.
+
+**Parameters:**
+- `guild_id` (required): The ID of the Discord server
+- `channel_id` (required): The ID of the channel
+- `message_id` (required): The ID of the message to retrieve
+
+### Delete Message
+
+Delete a message from a channel.
+
+**Parameters:**
+- `guild_id` (required): The ID of the Discord server
+- `channel_id` (required): The ID of the channel
+- `message_id` (required): The ID of the message to delete
+
+**Note:** The bot must have the "Manage Messages" permission to delete messages from other users.
+
+## Available Triggers
+
+### On Message Received
+
+Triggers when a new message is received in a specified channel.
+
+**Configuration:**
+- `guild_id` (required): The Discord server to monitor
+- `channel_id` (required): The specific channel to monitor
+
+**Event Data:**
+When this trigger fires, your workflow receives:
+- `message`: The message content
+- `author`: Information about who sent the message
+- `channel_id`: The channel where the message was sent
+- `guild_id`: The server where the message was sent
+- `timestamp`: When the message was sent
+
+## Finding Discord IDs
+
+### Enable Developer Mode
+
+1. Open Discord
+2. Go to User Settings (gear icon)
+3. Navigate to "Advanced"
+4. Enable "Developer Mode"
+
+### Getting IDs
+
+Once Developer Mode is enabled:
+
+- **Guild ID**: Right-click on the server icon → Copy Server ID
+- **Channel ID**: Right-click on a channel → Copy Channel ID
+- **Message ID**: Right-click on a message → Copy Message ID
+- **User ID**: Right-click on a user → Copy User ID
+
+## Bot Permissions
+
+Make sure your bot has the appropriate permissions:
+
+**For sending messages:**
+- View Channels
+- Send Messages
+- Read Message History
+
+**For deleting messages:**
+- Manage Messages
+
+**For reading messages (with trigger):**
+- View Channels
+- Read Message History
+- Message Content Intent (must be enabled in developer portal)
+
+## Example Workflows
+
+### Auto-respond to Discord Messages
+
+1. **Trigger**: On Message Received (monitor #support channel)
+2. **Condition**: Check if message contains "help"
+3. **Discord**: Send Message with support information
+
+### Log Discord Messages to Database
+
+1. **Trigger**: On Message Received
+2. **Transform**: Extract relevant message data
+3. **Database**: Insert message into PostgreSQL/MongoDB
+
+### Scheduled Discord Announcements
+
+1. **Trigger**: Cron (daily at 9 AM)
+2. **HTTP**: Fetch data from your API
+3. **Transform**: Format the announcement
+4. **Discord**: Send Message to announcement channel
+
+## Rate Limits
+
+Discord has rate limits on API requests:
+- Message sends: ~5 per 5 seconds per channel
+- Message deletes: ~5 per 1 second
+
+Flowbaker automatically handles rate limiting, but be mindful when creating high-volume workflows.
+
+## Troubleshooting
+
+### Bot not receiving messages
+
+1. Check that Message Content Intent is enabled in the Discord Developer Portal
+2. Verify the bot has permission to view the channel
+3. Ensure the bot is a member of the server
+
+### "Missing Access" error
+
+The bot doesn't have permission to access the channel or perform the action. Check the bot's role permissions.
+
+### "Unknown Channel" error
+
+The channel ID is incorrect or the bot cannot access that channel.
+
+## Best Practices
+
+1. **Use descriptive bot names** so users know what the bot does
+2. **Set up proper permissions** - only grant what's necessary
+3. **Handle errors gracefully** - add error handling to your workflows
+4. **Test in a private server** before deploying to production
+5. **Respect rate limits** to avoid being temporarily blocked
+
+## Resources
+
+- [Discord Developer Documentation](https://discord.com/developers/docs)
+- [Discord Bot Best Practices](https://discord.com/developers/docs/topics/best-practices)
+- [Discord Permission Calculator](https://discordapi.com/permissions.html)

@@ -1,0 +1,393 @@
+---
+title: "Google Gemini Integration"
+description: "Use Google's Gemini models for multimodal AI tasks"
+---
+
+The Google Gemini integration provides access to Google's advanced AI models capable of processing text, images, and other modalities.
+
+## Authentication
+
+You need a Google AI API key to use the Gemini integration.
+
+### Getting Your API Key
+
+1. Go to [Google AI Studio](https://makersuite.google.com/)
+2. Sign in with your Google account
+3. Click "Get API Key" in the top right
+4. Click "Create API Key"
+5. Choose an existing Google Cloud project or create a new one
+6. Copy the generated API key
+7. Store it securely
+
+**Note:** You may need to enable the Generative Language API in your Google Cloud Console.
+
+### Adding to Flowbaker
+
+1. Navigate to your workspace settings
+2. Go to "Credentials" → "Add Credential"
+3. Select "Google Gemini"
+4. Paste your API key
+5. Save the credential
+
+## Available Actions
+
+### AI Agent Chat
+
+Use Gemini models within AI agents for autonomous task completion.
+
+**Parameters:**
+- `model` (required): The Gemini model to use
+- `temperature` (optional): Creativity level (0-2, default varies by model)
+- `max_tokens` (optional): Maximum tokens to generate
+- `top_p` (optional): Nucleus sampling parameter (0-1)
+- `top_k` (optional): Top-K sampling (limits vocabulary)
+
+**Example:**
+```json
+{
+  "model": "gemini-2.5-pro",
+  "temperature": 0.7,
+  "max_tokens": 2048,
+  "top_p": 0.95
+}
+```
+
+**Note:** This action is designed for use within AI Agent nodes and supports multimodal inputs and tool calling.
+
+## Available Models
+
+### Gemini 3 Series (Preview)
+
+**Gemini 3 Pro (Preview)** (`gemini-3-pro-preview`)
+- Latest preview model from Google
+- Most advanced capabilities
+- Experimental features
+- Subject to change
+
+**Gemini 3 Flash (Preview)** (`gemini-3-flash-preview`)
+- Fast inference times
+- Preview of next-gen Flash model
+- Good for testing new features
+
+### Gemini 2.5 Series (Stable - Recommended)
+
+**Gemini 2.5 Pro** (`gemini-2.5-pro`)
+- Most capable stable model
+- Excellent for complex reasoning
+- Multimodal capabilities
+- Large context window (2M tokens)
+- Production-ready
+
+**Gemini 2.5 Flash** (`gemini-2.5-flash`)
+- Fast and efficient
+- Great for most use cases
+- Lower cost than Pro
+- Good balance of speed and capability
+
+**Gemini 2.5 Flash Lite** (`gemini-2.5-flash-lite`)
+- Fastest model
+- Most cost-effective
+- Best for simple tasks
+- High-volume applications
+
+### Gemini 2.0 Series
+
+**Gemini 2.0 Flash** (`gemini-2.0-flash`)
+- Previous generation Flash
+- Still very capable
+- Lower cost option
+
+**Gemini 2.0 Flash Lite** (`gemini-2.0-flash-lite`)
+- Budget-friendly option
+- Good for simple tasks
+
+## Model Selection Guide
+
+### When to Use Gemini 2.5 Pro
+- Complex reasoning and analysis
+- Long document understanding
+- Multimodal tasks (text + images)
+- Code generation and review
+- Scientific and technical content
+- Tasks requiring highest accuracy
+
+### When to Use Gemini 2.5 Flash
+- General conversational AI
+- Content generation
+- Data extraction
+- Classification tasks
+- Most business applications
+- When speed matters
+
+### When to Use Flash Lite
+- High-volume simple tasks
+- Real-time applications
+- Cost-sensitive projects
+- Basic Q&A
+- Simple transformations
+
+### Preview Models
+- Testing new features
+- Early access to capabilities
+- Development and experimentation
+- Not for production use
+
+## Example Workflows
+
+### Multimodal Content Analysis
+
+1. **Trigger**: Webhook (image uploaded)
+2. **Transform**: Prepare image and prompt
+3. **Gemini**: AI Agent Chat (analyze image)
+4. **Transform**: Format analysis
+5. **Database**: Store results
+
+### Code Generation Assistant
+
+1. **Trigger**: Slack Message
+2. **Transform**: Extract requirements
+3. **AI Agent**: Configure with Gemini 2.5 Pro
+4. **Tools**: Connect GitHub, documentation
+5. **Gemini**: Generate code
+6. **Slack**: Reply with code snippet
+
+### Document Summarizer
+
+1. **Trigger**: Dropbox (new file)
+2. **Transform**: Extract document text
+3. **Gemini**: AI Agent Chat (summarize)
+4. **Transform**: Format summary
+5. **Email**: Send summary to team
+
+### Real-time Translation Bot
+
+1. **Trigger**: Discord Message
+2. **Gemini**: AI Agent Chat (translate)
+3. **Discord**: Post translation
+
+### Research Assistant
+
+1. **Trigger**: HTTP Request
+2. **AI Agent**: Configure with Gemini 2.5 Pro
+3. **Tools**: Connect web search, database
+4. **Gemini**: Research and analyze
+5. **Response**: Return findings
+
+## Advanced Features
+
+### Multimodal Capabilities
+
+Gemini models can process multiple types of input:
+
+- **Text**: Natural language understanding
+- **Images**: Visual analysis and understanding
+- **Video** (Pro models): Video content analysis
+- **Audio** (Pro models): Speech and audio processing
+
+### Large Context Windows
+
+Gemini models support massive context windows:
+
+- **Gemini 2.5 Pro**: Up to 2 million tokens
+- **Gemini 2.5 Flash**: Up to 1 million tokens
+- **Flash Lite**: 1 million tokens
+
+This enables:
+- Analyzing entire codebases
+- Processing multiple documents
+- Very long conversations
+- Large-scale data analysis
+
+### Tool Use (Function Calling)
+
+When used in AI Agent nodes, Gemini can:
+- Execute functions
+- Call APIs
+- Query databases
+- Use custom tools
+- Chain multiple operations
+
+## Context Window Comparison
+
+| Model | Context Window | Best For |
+|-------|----------------|----------|
+| Gemini 2.5 Pro | 2M tokens | Entire codebases, multiple documents |
+| Gemini 2.5 Flash | 1M tokens | Long documents, extended conversations |
+| Gemini 2.5 Flash Lite | 1M tokens | Long-form content at low cost |
+| Gemini 2.0 Flash | 1M tokens | Legacy large context needs |
+
+**Note:** 1 million tokens ≈ 750,000 words
+
+## Temperature & Sampling
+
+### Temperature (0-2)
+
+- **0.0-0.3**: Deterministic, factual
+  - Use for: data extraction, analysis, factual Q&A
+- **0.4-0.7**: Balanced
+  - Use for: general chat, content generation
+- **0.8-1.5**: Creative
+  - Use for: creative writing, brainstorming
+- **1.6-2.0**: Very creative
+  - Use for: experimental, highly creative tasks
+
+### Top-P (Nucleus Sampling)
+
+Controls diversity by limiting to top probability mass:
+
+- **0.9-0.95**: Good balance (recommended)
+- **0.95-1.0**: More diverse outputs
+- **< 0.9**: More focused outputs
+
+### Top-K
+
+Limits vocabulary to K most likely tokens:
+
+- **1**: Most deterministic (rarely used)
+- **10-40**: Focused vocabulary
+- **40-100**: Balanced (recommended)
+- **> 100**: More diverse vocabulary
+
+## Rate Limits & Quotas
+
+Google AI enforces quotas based on your usage:
+
+- **Free tier**: 60 requests per minute
+- **Paid tier**: Higher limits (varies)
+- **Token limits**: Daily token quotas
+
+Flowbaker automatically handles rate limiting.
+
+## Pricing
+
+Gemini pricing is based on:
+
+- **Input tokens**: Text sent to the model
+- **Output tokens**: Text generated
+- **Image inputs**: Number and size of images
+
+**Free tier available** with generous limits for development.
+
+Check [Google AI Pricing](https://ai.google.dev/pricing) for current rates.
+
+## Error Handling
+
+### Common Errors
+
+**"API key not valid"**
+- Check your API key is correct
+- Ensure Generative Language API is enabled
+- Verify the key hasn't been restricted
+
+**"Quota exceeded"**
+- You've hit your daily/minute quota
+- Wait for quota to reset
+- Consider upgrading to paid tier
+
+**"Model not found"**
+- Check the model name is correct
+- Ensure you have access to that model
+- Preview models may have limited availability
+
+**"Invalid request"**
+- Check input format
+- Verify parameter values
+- Ensure content meets safety guidelines
+
+## Safety & Content Filtering
+
+Gemini includes built-in safety filters:
+
+- **Harmful content**: Blocked or filtered
+- **Hate speech**: Not generated
+- **Dangerous content**: Refused
+- **Sexually explicit**: Filtered
+
+You can adjust safety settings in Google AI Studio.
+
+## Best Practices
+
+### Model Selection
+
+1. **Start with Flash**: Use 2.5 Flash for most tasks
+2. **Upgrade to Pro**: Use when complexity demands it
+3. **Use Lite for volume**: High-throughput simple tasks
+4. **Test previews carefully**: Don't use in production
+
+### Prompt Engineering
+
+1. **Be specific**: Clear instructions get better results
+2. **Provide examples**: Show the model what you want
+3. **Use structure**: Format with markdown, XML tags
+4. **Iterate**: Refine based on outputs
+5. **Leverage context**: Utilize the large context window
+
+### Performance Optimization
+
+1. **Choose right model**: Don't over-engineer
+2. **Limit output**: Set appropriate max_tokens
+3. **Batch requests**: Group similar operations
+4. **Cache responses**: Store common queries
+5. **Monitor usage**: Track token consumption
+
+### Multimodal Usage
+
+1. **Image quality**: Higher quality = better results
+2. **Image size**: Optimize before sending
+3. **Clear prompts**: Describe what to analyze
+4. **Test formats**: Try different image formats
+
+## Comparison with Other Models
+
+### Gemini vs GPT
+
+**Gemini strengths:**
+- Larger context windows (2M vs 128K)
+- Native multimodal capabilities
+- Integrated with Google ecosystem
+- Strong at code and technical tasks
+- Free tier available
+
+**GPT strengths:**
+- More mature ecosystem
+- Better function calling
+- Image generation (DALL-E)
+- Embeddings models
+
+### Gemini vs Claude
+
+**Gemini strengths:**
+- Larger context (2M vs 200K)
+- Multimodal native
+- Free tier
+- Fast inference (Flash models)
+
+**Claude strengths:**
+- Strong instruction following
+- Better for nuanced tasks
+- More natural conversation
+- Strong safety features
+
+## Use Cases
+
+### Perfect for Gemini
+
+- **Code generation**: Excellent at understanding and generating code
+- **Document analysis**: Massive context window for large documents
+- **Image understanding**: Native multimodal capabilities
+- **Data extraction**: Fast and accurate extraction
+- **Research**: Can process vast amounts of information
+
+### Consider Alternatives
+
+- **Creative writing**: Claude or GPT might be better
+- **Image generation**: Use DALL-E or Midjourney
+- **Simple chat**: May be overkill; consider smaller models
+
+## Resources
+
+- [Google AI Documentation](https://ai.google.dev/docs)
+- [Gemini API Reference](https://ai.google.dev/api)
+- [Google AI Studio](https://makersuite.google.com/)
+- [Pricing Information](https://ai.google.dev/pricing)
+- [Prompt Gallery](https://ai.google.dev/examples)

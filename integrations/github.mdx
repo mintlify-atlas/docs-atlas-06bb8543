@@ -1,0 +1,209 @@
+---
+title: GitHub Integration
+description: Manage GitHub repositories, issues, pull requests, releases, and files with Flowbaker's GitHub integration.
+---
+
+The GitHub integration allows you to automate your GitHub workflows by managing repositories, issues, pull requests, releases, and files programmatically.
+
+## Authentication
+
+Connect your GitHub account using OAuth 2.0:
+
+- **GitHub Account**: OAuth authentication for accessing your GitHub repositories
+
+## Available Actions
+
+### Issue Management
+
+#### Create Issue
+Create a new issue in a GitHub repository.
+
+**Parameters:**
+- `repository_id` (required): Repository in format 'owner/repo'
+- `title` (required): Title of the issue
+- `body` (optional): Body content of the issue
+- `assignee` (optional): Login of user to assign
+- `labels` (optional): Array of label names
+
+#### Get Issue
+Retrieve a specific issue by number.
+
+**Parameters:**
+- `repository_id` (required): Repository in format 'owner/repo'
+- `issue_number` (required): Issue number to retrieve
+
+#### Edit Issue
+Update an existing issue.
+
+**Parameters:**
+- `repository_id` (required): Repository in format 'owner/repo'
+- `issue_number` (required): Issue number to edit
+- `title` (optional): New title
+- `body` (optional): New body
+- `state` (optional): 'open' or 'closed'
+- `assignee` (optional): New assignee login
+- `labels` (optional): Array of label names (replaces existing)
+
+#### Lock Issue
+Lock an issue's conversation.
+
+**Parameters:**
+- `repository_id` (required): Repository in format 'owner/repo'
+- `issue_number` (required): Issue number to lock
+- `lock_reason` (optional): Reason ('off-topic', 'too heated', 'resolved', 'spam')
+
+#### Create Issue Comment
+Add a comment to an issue.
+
+**Parameters:**
+- `repository_id` (required): Repository in format 'owner/repo'
+- `issue_number` (required): Issue number
+- `body` (required): Comment content
+
+### File Operations
+
+#### Create File
+Create a new file in a repository.
+
+**Parameters:**
+- `repository_id` (required): Repository in format 'owner/repo'
+- `path` (required): File path in repository
+- `message` (required): Commit message
+- `content` (required): File content as plain text
+- `branch` (optional): Branch name (default: repository's default branch)
+
+#### Update File
+Update an existing file.
+
+**Parameters:**
+- `repository_id` (required): Repository in format 'owner/repo'
+- `path` (required): File path
+- `message` (required): Commit message
+- `content` (required): New file content
+- `sha` (required): Blob SHA of the file
+- `branch` (optional): Branch name
+
+#### Delete File
+Delete a file from a repository.
+
+**Parameters:**
+- `repository_id` (required): Repository in format 'owner/repo'
+- `path` (required): File path to delete
+- `message` (required): Commit message
+- `sha` (required): Blob SHA of the file
+- `branch` (optional): Branch name
+
+#### Get File Content
+Retrieve the content of a file.
+
+**Parameters:**
+- `repository_id` (required): Repository in format 'owner/repo'
+- `path` (required): File path
+- `ref` (optional): Commit/branch/tag name
+
+#### List Repository Content
+List files in a directory.
+
+**Parameters:**
+- `repository_id` (required): Repository in format 'owner/repo'
+- `path` (optional): Directory path (default: root)
+- `ref` (optional): Commit/branch/tag name
+
+### Release Management
+
+#### Create Release
+Create a new release.
+
+**Parameters:**
+- `repository_id` (required): Repository in format 'owner/repo'
+- `tag_name` (required): Tag name for release
+- `target_commitish` (optional): Branch or commit SHA
+- `name` (optional): Release name
+- `body` (optional): Release description
+- `draft` (optional): Create as draft (default: false)
+- `prerelease` (optional): Mark as prerelease (default: false)
+
+#### List Releases
+List all releases for a repository.
+
+**Parameters:**
+- `repository_id` (required): Repository in format 'owner/repo'
+- `limit` (optional): Max results (1-100, default: 30)
+- `page` (optional): Page number (default: 1)
+
+#### Get Release
+Get a specific release by ID or tag.
+
+**Parameters:**
+- `repository_id` (required): Repository in format 'owner/repo'
+- `release_id` (required): Release ID, 'latest', or 'tags/YOUR_TAG_NAME'
+
+#### Update Release
+Update an existing release.
+
+**Parameters:**
+- `repository_id` (required): Repository in format 'owner/repo'
+- `release_id` (required): Release ID
+- `tag_name` (optional): New tag name
+- `name` (optional): New release name
+- `body` (optional): New description
+- `draft` (optional): Draft status
+- `prerelease` (optional): Prerelease status
+
+#### Delete Release
+Delete a release.
+
+**Parameters:**
+- `repository_id` (required): Repository in format 'owner/repo'
+- `release_id` (required): Release ID to delete
+
+### Pull Request Reviews
+
+#### Create Pull Request Review
+Create a review for a pull request.
+
+**Parameters:**
+- `repository_id` (required): Repository in format 'owner/repo'
+- `pull_number` (required): Pull request number
+- `event` (optional): 'APPROVE', 'REQUEST_CHANGES', or 'COMMENT'
+- `body` (optional): Review body (required if event is 'COMMENT')
+- `commit_id` (optional): SHA of commit to review
+
+#### List Pull Request Reviews
+List reviews for a pull request.
+
+**Parameters:**
+- `repository_id` (required): Repository in format 'owner/repo'
+- `pull_number` (required): Pull request number
+- `limit` (optional): Max results (1-100, default: 30)
+- `page` (optional): Page number
+
+## Available Triggers
+
+GitHub provides 40+ event types including:
+
+- **Issues**: issue creation, updates, comments
+- **Pull Requests**: PR creation, review, merge
+- **Releases**: release creation and publishing
+- **Pushes**: commits pushed to repository
+- **Stars**: repository starring events
+- And many more...
+
+## Configuration Example
+
+```json
+{
+  "repository_id": "owner/repo",
+  "title": "Bug report",
+  "body": "Description of the bug",
+  "labels": ["bug", "high-priority"]
+}
+```
+
+## Best Practices
+
+1. Use specific repository IDs in 'owner/repo' format
+2. Always provide meaningful commit messages for file operations
+3. Keep track of file SHAs when updating or deleting files
+4. Use labels and assignees to organize issues effectively
+5. Set appropriate permissions on your GitHub OAuth app

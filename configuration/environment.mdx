@@ -1,0 +1,447 @@
+---
+title: "Environment Variables"
+description: "Complete reference for Flowbaker configuration options and environment variables"
+---
+
+## Overview
+
+Flowbaker can be configured using environment variables, a configuration file (`~/.flowbaker/config.json`), or a combination of both. Environment variables take precedence over the configuration file.
+
+## Configuration Priority
+
+1. **Environment variables** (highest priority)
+2. **Configuration file** (`~/.flowbaker/config.json`)
+3. **Default values** (lowest priority)
+
+## Executor Configuration
+
+### FLOWBAKER_EXECUTOR_ID
+
+Your unique executor identifier assigned during registration.
+
+**Type**: String
+
+**Default**: None (assigned by API)
+
+**Example**:
+```bash
+export FLOWBAKER_EXECUTOR_ID="exec_1a2b3c4d5e6f"
+```
+
+### FLOWBAKER_EXECUTOR_NAME
+
+A friendly name for your executor.
+
+**Type**: String
+
+**Default**: Auto-generated random name
+
+**Example**:
+```bash
+export FLOWBAKER_EXECUTOR_NAME="production-executor-east"
+```
+
+### FLOWBAKER_EXECUTOR_ADDRESS
+
+The full URL where your executor is accessible.
+
+**Type**: String (URL)
+
+**Default**: `http://localhost:8081` (or auto-detected public IP)
+
+**Format**: `http://HOST:PORT` or `https://HOST:PORT`
+
+**Example**:
+```bash
+export FLOWBAKER_EXECUTOR_ADDRESS="https://executor.mycompany.com:8081"
+```
+
+<Note>
+  The address must be reachable by the Flowbaker platform to receive workflow execution requests.
+</Note>
+
+## API Configuration
+
+### FLOWBAKER_API_URL
+
+The Flowbaker API base URL.
+
+**Type**: String (URL)
+
+**Default**: `https://api.flowbaker.io`
+
+**Example**:
+```bash
+# Production (default)
+export FLOWBAKER_API_URL="https://api.flowbaker.io"
+
+# Self-hosted
+export FLOWBAKER_API_URL="https://flowbaker-api.mycompany.com"
+
+# Local development
+export FLOWBAKER_API_URL="http://localhost:8080"
+```
+
+## Cryptographic Keys
+
+<Warning>
+  **Security**: These variables contain sensitive cryptographic material. Never commit them to version control or expose them in logs.
+</Warning>
+
+### FLOWBAKER_X25519_PRIVATE_KEY
+
+X25519 private key for credential encryption (base64 encoded).
+
+**Type**: String (Base64)
+
+**Default**: Auto-generated during setup
+
+**Size**: 32 bytes (43 characters when base64 encoded)
+
+### FLOWBAKER_X25519_PUBLIC_KEY
+
+X25519 public key for credential encryption (base64 encoded).
+
+**Type**: String (Base64)
+
+**Default**: Auto-generated during setup
+
+**Size**: 32 bytes (43 characters when base64 encoded)
+
+### FLOWBAKER_ED25519_PRIVATE_KEY
+
+Ed25519 private key for API request signing (base64 encoded).
+
+**Type**: String (Base64)
+
+**Default**: Auto-generated during setup
+
+**Size**: 64 bytes (88 characters when base64 encoded)
+
+### FLOWBAKER_ED25519_PUBLIC_KEY
+
+Ed25519 public key for API request signing (base64 encoded).
+
+**Type**: String (Base64)
+
+**Default**: Auto-generated during setup
+
+**Size**: 32 bytes (43 characters when base64 encoded)
+
+### STATIC_API_SIGNATURE_PUBLIC_KEY
+
+Static Ed25519 public key for verifying incoming requests (base64 encoded).
+
+**Type**: String (Base64)
+
+**Default**: None (uses workspace-specific keys)
+
+**Example**:
+```bash
+export STATIC_API_SIGNATURE_PUBLIC_KEY="d0FtcGxlUHVibGljS2V5Rm9yVmVyaWZpY2F0aW9uMTIz"
+```
+
+<Note>
+  Only needed for advanced deployments. By default, workspace-specific API keys are used.
+</Note>
+
+## Workspace Registration
+
+### FLOWBAKER_ENABLE_WORKSPACE_REGISTRATION
+
+Enable or disable workspace registration endpoint.
+
+**Type**: Boolean
+
+**Default**: `true`
+
+**Example**:
+```bash
+# Enable workspace registration (default)
+export FLOWBAKER_ENABLE_WORKSPACE_REGISTRATION="true"
+
+# Disable after initial setup
+export FLOWBAKER_ENABLE_WORKSPACE_REGISTRATION="false"
+```
+
+### FLOWBAKER_ENABLE_STATIC_PASSCODE
+
+Use a static passcode instead of generating a new one each time.
+
+**Type**: Boolean
+
+**Default**: `false`
+
+**Example**:
+```bash
+export FLOWBAKER_ENABLE_STATIC_PASSCODE="true"
+```
+
+### FLOWBAKER_STATIC_PASSCODE
+
+The static passcode to use for workspace registration (requires `FLOWBAKER_ENABLE_STATIC_PASSCODE=true`).
+
+**Type**: String (Base64)
+
+**Default**: None (auto-generated)
+
+**Example**:
+```bash
+export FLOWBAKER_ENABLE_STATIC_PASSCODE="true"
+export FLOWBAKER_STATIC_PASSCODE="aVF4bmRoY3N6Q0x4ZlhtMTIzNDU2Nzg5MA=="
+```
+
+<Warning>
+  Use a cryptographically secure random string for the static passcode in production.
+</Warning>
+
+### FLOWBAKER_SKIP_WORKSPACE_ASSIGNMENTS
+
+Skip workspace assignment checks and signature verification.
+
+**Type**: Boolean
+
+**Default**: `false`
+
+**Example**:
+```bash
+export FLOWBAKER_SKIP_WORKSPACE_ASSIGNMENTS="true"
+```
+
+<Warning>
+  **Security Risk**: Only use in controlled test environments. This disables workspace-level authentication.
+</Warning>
+
+## Setup Configuration
+
+### FLOWBAKER_SETUP_COMPLETE
+
+Indicates whether initial setup has been completed.
+
+**Type**: Boolean
+
+**Default**: `false`
+
+**Example**:
+```bash
+export FLOWBAKER_SETUP_COMPLETE="true"
+```
+
+<Note>
+  This is automatically set to `true` after successful setup. You generally don't need to set this manually.
+</Note>
+
+## Client Configuration
+
+These settings configure the HTTP client behavior for API requests (from `pkg/clients/flowbaker-executor/config.go:9`).
+
+### Request Timeouts
+
+**Default Timeout**: 30 seconds
+
+Timeout for individual HTTP requests to the Flowbaker API.
+
+### Retry Configuration
+
+**Default Retry Attempts**: 3
+
+**Default Retry Delay**: 1 second
+
+The client automatically retries failed requests with exponential backoff.
+
+### User Agent
+
+**Default**: `flowbaker-executor-client/1.0`
+
+Identifies the executor client in API requests.
+
+## Server Configuration
+
+### Listen Port
+
+The executor HTTP server listens on port **8081** by default.
+
+**Hardcoded in**: `cmd/cli/start.go:121`
+
+To use a different port, you'll need to modify the executor code and rebuild.
+
+### Health Check Endpoint
+
+**Endpoint**: `GET /health`
+
+**Response**:
+```json
+{
+  "status": "healthy",
+  "service": "flowbaker-executor",
+  "version": "1.0.0",
+  "timestamp": "2026-03-03T12:00:00Z",
+  "setup_mode": false
+}
+```
+
+## Configuration File Location
+
+The configuration file is stored at:
+
+**Path**: `~/.flowbaker/config.json` (Unix/Linux/macOS)
+
+**Path**: `%USERPROFILE%\.flowbaker\config.json` (Windows)
+
+### File Structure
+
+From `pkg/domain/config_manager.go:15`:
+
+```json
+{
+  "executor_id": "exec_abc123",
+  "executor_name": "my-executor",
+  "address": "http://192.168.1.100:8081",
+  "api_base_url": "https://api.flowbaker.io",
+  "x25519_private_key": "base64-encoded-key",
+  "x25519_public_key": "base64-encoded-key",
+  "ed25519_private_key": "base64-encoded-key",
+  "ed25519_public_key": "base64-encoded-key",
+  "static_api_signature_public_key": "",
+  "setup_complete": true,
+  "workspace_assignments": [
+    {
+      "workspace_id": "ws_xyz789",
+      "workspace_name": "My Workspace",
+      "workspace_slug": "my-workspace",
+      "api_public_key": "base64-encoded-key"
+    }
+  ],
+  "enable_workspace_registration": true,
+  "enable_static_passcode": false,
+  "static_passcode": "",
+  "skip_workspace_assignments": false,
+  "last_connected": "2026-03-03T12:00:00Z"
+}
+```
+
+## Environment Variable Mapping
+
+From `pkg/domain/config_manager.go:91`:
+
+| Config Key | Environment Variable |
+|------------|---------------------|
+| `executor_id` | `FLOWBAKER_EXECUTOR_ID` |
+| `executor_name` | `FLOWBAKER_EXECUTOR_NAME` |
+| `address` | `FLOWBAKER_EXECUTOR_ADDRESS` |
+| `api_base_url` | `FLOWBAKER_API_URL` |
+| `x25519_private_key` | `FLOWBAKER_X25519_PRIVATE_KEY` |
+| `x25519_public_key` | `FLOWBAKER_X25519_PUBLIC_KEY` |
+| `ed25519_private_key` | `FLOWBAKER_ED25519_PRIVATE_KEY` |
+| `ed25519_public_key` | `FLOWBAKER_ED25519_PUBLIC_KEY` |
+| `static_api_signature_public_key` | `STATIC_API_SIGNATURE_PUBLIC_KEY` |
+| `setup_complete` | `FLOWBAKER_SETUP_COMPLETE` |
+| `enable_workspace_registration` | `FLOWBAKER_ENABLE_WORKSPACE_REGISTRATION` |
+| `enable_static_passcode` | `FLOWBAKER_ENABLE_STATIC_PASSCODE` |
+| `static_passcode` | `FLOWBAKER_STATIC_PASSCODE` |
+| `skip_workspace_assignments` | `FLOWBAKER_SKIP_WORKSPACE_ASSIGNMENTS` |
+
+## Default Values
+
+From `pkg/domain/config_manager.go:217`:
+
+```bash
+# Default configuration values
+FLOWBAKER_EXECUTOR_NAME="flowbaker-executor"
+FLOWBAKER_EXECUTOR_ADDRESS="http://localhost:8081"
+FLOWBAKER_API_URL="https://api.flowbaker.io"
+FLOWBAKER_SETUP_COMPLETE="false"
+FLOWBAKER_ENABLE_WORKSPACE_REGISTRATION="true"
+FLOWBAKER_ENABLE_STATIC_PASSCODE="false"
+FLOWBAKER_SKIP_WORKSPACE_ASSIGNMENTS="false"
+```
+
+## Example Configurations
+
+### Basic Production Setup
+
+```bash
+#!/bin/bash
+# production.env
+
+export FLOWBAKER_EXECUTOR_NAME="production-executor-1"
+export FLOWBAKER_EXECUTOR_ADDRESS="https://executor.mycompany.com:8081"
+export FLOWBAKER_API_URL="https://api.flowbaker.io"
+```
+
+### Self-Hosted with Static Passcode
+
+```bash
+#!/bin/bash
+# self-hosted.env
+
+export FLOWBAKER_EXECUTOR_NAME="self-hosted-executor"
+export FLOWBAKER_EXECUTOR_ADDRESS="http://10.0.0.50:8081"
+export FLOWBAKER_API_URL="https://flowbaker-api.internal.company.com"
+export FLOWBAKER_ENABLE_STATIC_PASSCODE="true"
+export FLOWBAKER_STATIC_PASSCODE="$(openssl rand -base64 32)"
+```
+
+### Development Setup
+
+```bash
+#!/bin/bash
+# development.env
+
+export FLOWBAKER_EXECUTOR_NAME="dev-executor"
+export FLOWBAKER_EXECUTOR_ADDRESS="http://localhost:8081"
+export FLOWBAKER_API_URL="http://localhost:8080"
+```
+
+## Validation
+
+To verify your configuration:
+
+```bash
+# Check current configuration
+flowbaker status
+
+# Test configuration file
+cat ~/.flowbaker/config.json | jq .
+
+# Verify environment variables
+env | grep FLOWBAKER
+```
+
+## Troubleshooting
+
+### Configuration Not Loading
+
+If configuration isn't being read:
+
+1. Check file location: `ls -la ~/.flowbaker/config.json`
+2. Verify JSON syntax: `jq . ~/.flowbaker/config.json`
+3. Check file permissions: `chmod 600 ~/.flowbaker/config.json`
+
+### Environment Variables Not Working
+
+If environment variables aren't taking effect:
+
+1. Verify export: `echo $FLOWBAKER_EXECUTOR_NAME`
+2. Check for typos in variable names
+3. Restart the executor after setting variables
+
+### Keys Not Base64 Encoded
+
+If you see encoding errors:
+
+```bash
+# Check if key is valid base64
+echo "$FLOWBAKER_ED25519_PRIVATE_KEY" | base64 -d > /dev/null && echo "Valid" || echo "Invalid"
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Initial Setup" icon="rocket" href="/configuration/setup">
+    Learn about the first-time setup process
+  </Card>
+  <Card title="Docker Deployment" icon="docker" href="/self-hosting/docker">
+    Deploy with Docker and environment variables
+  </Card>
+</CardGroup>

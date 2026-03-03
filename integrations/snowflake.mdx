@@ -1,0 +1,152 @@
+---
+title: 'Snowflake'
+description: 'Use Snowflake integration to perform data warehouse operations like executing queries, inserting data, and updating records.'
+---
+
+## Overview
+
+The Snowflake integration enables you to connect to your Snowflake data warehouse to execute SQL queries, insert data, update records, and select data from tables.
+
+## Configuration
+
+To set up the Snowflake integration, you need to provide the following credentials:
+
+| Field | Description | Required |
+|-------|-------------|----------|
+| **Account** | Snowflake account identifier | Yes |
+| **Username** | Snowflake username | Yes |
+| **Authentication Type** | Choose authentication method (Password or Key Pair) | Yes |
+| **Password** | Snowflake password (for password auth) | Conditional |
+| **Private Key** | RSA private key in PEM format (for key pair auth) | Conditional |
+| **Private Key Passphrase** | Passphrase for encrypted private key | No |
+| **Warehouse** | Snowflake warehouse name | Yes |
+| **Database** | Default database name | No |
+| **Schema** | Default schema name | No |
+| **Role** | Snowflake role | No |
+
+### Example Configuration (Password Auth)
+
+```json
+{
+  "account": "mycompany",
+  "username": "john_doe",
+  "auth_type": "password",
+  "password": "*****",
+  "warehouse": "COMPUTE_WH",
+  "database": "MYDB",
+  "schema": "PUBLIC"
+}
+```
+
+### Example Configuration (Key Pair Auth)
+
+```json
+{
+  "account": "mycompany",
+  "username": "john_doe",
+  "auth_type": "key_pair",
+  "private_key": "-----BEGIN PRIVATE KEY-----\n...",
+  "warehouse": "COMPUTE_WH"
+}
+```
+
+## Available Actions
+
+### Execute Query
+
+Execute a SQL query and return results.
+
+**Example:**
+```sql
+SELECT * FROM customers WHERE status = 'active'
+```
+
+### Insert
+
+Insert data into a Snowflake table.
+
+**Parameters:**
+- **Table**: The table name (uses database/schema from credential)
+- **Columns**: Map item fields to table columns
+
+**Example:**
+```json
+{
+  "table": "customers",
+  "columns": [
+    {"column": "name", "value": "John Doe"},
+    {"column": "email", "value": "john@example.com"},
+    {"column": "status", "value": "active"}
+  ]
+}
+```
+
+### Update
+
+Update data in a Snowflake table.
+
+**Parameters:**
+- **Table**: The table name
+- **Columns**: Map item fields to columns to update
+- **Conditions**: WHERE clause conditions (combined with AND)
+
+**Example:**
+```json
+{
+  "table": "customers",
+  "columns": [
+    {"column": "status", "value": "inactive"}
+  ],
+  "conditions": [
+    {"column": "email", "operator": "=", "value": "john@example.com"}
+  ]
+}
+```
+
+### Select
+
+Select data from a Snowflake table.
+
+**Parameters:**
+- **Table**: The table name
+- **Columns**: Columns to select (leave empty for all columns)
+- **Conditions**: WHERE clause conditions (leave empty for all rows)
+- **Limit**: Maximum number of rows to return
+
+**Example:**
+```json
+{
+  "table": "customers",
+  "columns": [
+    {"column": "name"},
+    {"column": "email"}
+  ],
+  "conditions": [
+    {"column": "status", "operator": "=", "value": "active"}
+  ],
+  "limit": 100
+}
+```
+
+## Supported Operators
+
+The Update and Select actions support the following operators in conditions:
+
+- `=` - Equals
+- `!=` - Not Equals
+- `>` - Greater Than
+- `<` - Less Than
+- `>=` - Greater or Equal
+- `<=` - Less or Equal
+- `LIKE` - Pattern matching
+- `NOT LIKE` - Negative pattern matching
+- `IS NULL` - Is NULL
+- `IS NOT NULL` - Is not NULL
+
+## Best Practices
+
+- Use parameterized queries to prevent SQL injection
+- Set appropriate warehouse size for your workload
+- Use the default database and schema in credentials for simpler queries
+- Consider using roles to manage permissions
+- For large result sets, use the LIMIT parameter

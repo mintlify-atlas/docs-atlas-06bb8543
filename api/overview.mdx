@@ -1,0 +1,93 @@
+---
+title: 'API Overview'
+description: 'Introduction to the Flowbaker Executor API'
+---
+
+## Introduction
+
+The Flowbaker Executor API is a RESTful API that enables programmatic control over workflow execution. It provides endpoints for starting and stopping executions, managing workspaces, testing connections, and more.
+
+## Base URL
+
+The API is available at your executor instance endpoint:
+
+```
+http://your-executor-host:port
+```
+
+For example, if running locally:
+
+```
+http://localhost:8080
+```
+
+## API Architecture
+
+The Flowbaker Executor API follows a workspace-centric design:
+
+- Most endpoints are scoped to a specific workspace via the `workspaceID` path parameter
+- All workspace-scoped endpoints require API signature authentication
+- The health check endpoint is public and requires no authentication
+
+## Common Response Format
+
+Most API endpoints return JSON responses with the following structure:
+
+**Success Response:**
+```json
+{
+  "success": true,
+  "data": { ... }
+}
+```
+
+**Error Response:**
+```json
+{
+  "error": "Error message describing what went wrong"
+}
+```
+
+## HTTP Status Codes
+
+The API uses standard HTTP status codes:
+
+- `200 OK` - Request succeeded
+- `400 Bad Request` - Invalid request parameters
+- `401 Unauthorized` - Authentication failed or missing
+- `500 Internal Server Error` - Server-side error occurred
+
+## Health Check
+
+A public health check endpoint is available to verify the executor service is running:
+
+```bash
+curl http://localhost:8080/health
+```
+
+**Response:**
+```json
+{
+  "status": "healthy",
+  "service": "flowbaker-executor",
+  "version": "1.0.0",
+  "timestamp": "2026-03-03T10:00:00Z"
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="lock" href="/api/authentication">
+    Learn about API signature authentication
+  </Card>
+  <Card title="Executions" icon="play" href="/api/executions">
+    Start and manage workflow executions
+  </Card>
+  <Card title="Workspaces" icon="folder" href="/api/workspaces">
+    Register and manage workspaces
+  </Card>
+  <Card title="Domain Models" icon="cube" href="/api/workflow">
+    Understand data structures
+  </Card>
+</CardGroup>

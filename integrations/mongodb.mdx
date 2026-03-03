@@ -1,0 +1,293 @@
+---
+title: MongoDB Integration
+description: Perform database operations in MongoDB including inserting, finding, updating, and deleting documents.
+---
+
+The MongoDB integration enables you to connect to MongoDB databases and perform CRUD operations directly from your workflows.
+
+## Authentication
+
+Connect to your MongoDB database using a connection string:
+
+- **MongoDB URI** (required): Connection string in the format:
+  ```
+  mongodb://username:password@host:port/database
+  mongodb+srv://username:password@cluster.mongodb.net/database
+  ```
+
+## Available Actions
+
+### Insert Operations
+
+#### Insert One
+Insert a single document into a collection.
+
+**Parameters:**
+- `database` (required): Database name
+- `collection` (required): Collection name
+- `document` (required): JSON document to insert
+
+#### Insert Many
+Insert multiple documents into a collection.
+
+**Parameters:**
+- `database` (required): Database name
+- `collection` (required): Collection name
+- `documents` (required): Array of JSON documents (1-100 documents)
+
+### Find Operations
+
+#### Find One
+Find a single document matching criteria.
+
+**Parameters:**
+- `database` (required): Database name
+- `collection` (required): Collection name
+- `filter` (required): JSON filter criteria
+
+#### Find Many
+Find multiple documents matching criteria.
+
+**Parameters:**
+- `database` (required): Database name
+- `collection` (required): Collection name
+- `filter` (required): JSON filter criteria
+- `limit` (optional): Maximum documents to return
+- `skip` (optional): Number of documents to skip
+
+### Update Operations
+
+#### Update One
+Update a single document.
+
+**Parameters:**
+- `database` (required): Database name
+- `collection` (required): Collection name
+- `filter` (required): JSON filter criteria
+- `update` (required): JSON update operations
+
+#### Update Many
+Update multiple documents.
+
+**Parameters:**
+- `database` (required): Database name
+- `collection` (required): Collection name
+- `filter` (required): JSON filter criteria
+- `update` (required): JSON update operations
+
+### Delete Operations
+
+#### Delete One
+Delete a single document.
+
+**Parameters:**
+- `database` (required): Database name
+- `collection` (required): Collection name
+- `filter` (required): JSON filter criteria
+
+#### Delete Many
+Delete multiple documents.
+
+**Parameters:**
+- `database` (required): Database name
+- `collection` (required): Collection name
+- `filter` (required): JSON filter criteria
+
+### AI Agent Memory
+Use MongoDB to store conversation history for AI agents.
+
+**Parameters:**
+- `database` (required): Database name
+- `collection` (required): Collection name for messages
+- `session_id` (required): Unique session identifier
+
+## Configuration Examples
+
+### Insert Document
+```json
+{
+  "database": "myapp",
+  "collection": "users",
+  "document": {
+    "name": "John Doe",
+    "email": "john@example.com",
+    "age": 30,
+    "created_at": "{{$now}}"
+  }
+}
+```
+
+### Find Documents
+```json
+{
+  "database": "myapp",
+  "collection": "users",
+  "filter": {
+    "age": { "$gte": 18 },
+    "status": "active"
+  },
+  "limit": 50
+}
+```
+
+### Update Document
+```json
+{
+  "database": "myapp",
+  "collection": "users",
+  "filter": { "email": "john@example.com" },
+  "update": {
+    "$set": { "last_login": "{{$now}}" },
+    "$inc": { "login_count": 1 }
+  }
+}
+```
+
+### Delete Documents
+```json
+{
+  "database": "myapp",
+  "collection": "sessions",
+  "filter": {
+    "expires_at": { "$lt": "{{$now}}" }
+  }
+}
+```
+
+## MongoDB Query Operators
+
+### Comparison Operators
+- `$eq`: Equal to
+- `$ne`: Not equal to
+- `$gt`: Greater than
+- `$gte`: Greater than or equal to
+- `$lt`: Less than
+- `$lte`: Less than or equal to
+- `$in`: In array
+- `$nin`: Not in array
+
+### Logical Operators
+- `$and`: Logical AND
+- `$or`: Logical OR
+- `$not`: Logical NOT
+- `$nor`: Logical NOR
+
+### Element Operators
+- `$exists`: Field exists
+- `$type`: Field type
+
+### Array Operators
+- `$all`: All elements match
+- `$elemMatch`: Element matches
+- `$size`: Array size
+
+## Update Operators
+
+### Field Update Operators
+- `$set`: Set field value
+- `$unset`: Remove field
+- `$inc`: Increment number
+- `$mul`: Multiply number
+- `$rename`: Rename field
+- `$min`: Update if less than
+- `$max`: Update if greater than
+- `$currentDate`: Set to current date
+
+### Array Update Operators
+- `$push`: Add to array
+- `$pull`: Remove from array
+- `$addToSet`: Add unique to array
+- `$pop`: Remove first or last
+- `$pullAll`: Remove all occurrences
+
+## Connection String Formats
+
+### Standard Connection
+```
+mongodb://username:password@localhost:27017/database
+mongodb://username:password@host1:27017,host2:27017/database?replicaSet=myReplica
+```
+
+### MongoDB Atlas (SRV)
+```
+mongodb+srv://username:password@cluster.mongodb.net/database
+mongodb+srv://username:password@cluster.mongodb.net/database?retryWrites=true&w=majority
+```
+
+## Best Practices
+
+1. **Use appropriate indexes** for frequently queried fields
+2. **Validate documents** before insertion
+3. **Use projection** to return only needed fields
+4. **Limit result sets** for large collections
+5. **Use bulk operations** for multiple inserts/updates
+6. **Handle ObjectId** properly when querying by _id
+7. **Use aggregation pipeline** for complex queries
+8. **Enable authentication** in production
+9. **Regular backups** of important data
+10. **Monitor performance** and optimize queries
+
+## Common Query Patterns
+
+### Find by ID
+```json
+{
+  "filter": { "_id": { "$oid": "507f1f77bcf86cd799439011" } }
+}
+```
+
+### Text Search
+```json
+{
+  "filter": { "$text": { "$search": "coffee" } }
+}
+```
+
+### Date Range Query
+```json
+{
+  "filter": {
+    "created_at": {
+      "$gte": "2024-01-01T00:00:00Z",
+      "$lt": "2024-02-01T00:00:00Z"
+    }
+  }
+}
+```
+
+### Array Contains
+```json
+{
+  "filter": { "tags": { "$in": ["mongodb", "database"] } }
+}
+```
+
+## Error Handling
+
+Common MongoDB errors:
+- **Connection timeout**: Check network and host availability
+- **Authentication failed**: Verify credentials
+- **Duplicate key error**: Unique index violation
+- **Document validation error**: Schema validation failed
+- **Namespace not found**: Database or collection doesn't exist
+
+## Performance Optimization
+
+1. **Create Indexes**: Index frequently queried fields
+2. **Use Projection**: Return only required fields
+3. **Batch Operations**: Group multiple operations
+4. **Connection Pooling**: Reuse database connections
+5. **Avoid Large Documents**: Keep documents under 16MB
+6. **Use Aggregation**: For complex data transformations
+7. **Sharding**: Distribute data across servers for scale
+
+## Common Use Cases
+
+- **User Management**: Store user profiles and preferences
+- **Content Management**: Manage articles, posts, and media
+- **Analytics**: Store and query event data
+- **Session Storage**: Maintain user sessions
+- **Logging**: Store application logs and events
+- **Real-time Data**: Handle high-velocity data streams
+- **AI Memory**: Maintain conversation context for AI agents
+- **Product Catalogs**: Flexible schema for product data

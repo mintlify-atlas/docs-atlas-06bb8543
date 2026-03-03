@@ -1,0 +1,367 @@
+---
+title: Integrations
+description: Understanding integrations, integration types, actions, and triggers in Flowbaker
+---
+
+# Integrations
+
+Integrations connect Flowbaker to external services and platforms. Each integration provides triggers to start workflows and actions to perform operations.
+
+## Integration Structure
+
+An integration is defined by the `Integration` struct:
+
+```go
+type Integration struct {
+    ID                   IntegrationType
+    Name                 string
+    Description          string
+    CredentialProperties []NodeProperty
+    Actions              []IntegrationAction
+    Triggers             []IntegrationTrigger
+    EmbeddingModels      []IntegrationEmbeddingModel
+    IsGroup              bool
+    CanTestConnection    bool
+    IsCredentialOptional bool
+}
+```
+
+### Key Properties
+
+- **ID**: Unique identifier for the integration type
+- **Name**: Display name of the integration
+- **Description**: What the integration does
+- **CredentialProperties**: Required authentication properties
+- **Actions**: Operations this integration can perform
+- **Triggers**: Events this integration can listen for
+- **CanTestConnection**: Whether credentials can be validated
+- **IsCredentialOptional**: Whether authentication is required
+
+## Integration Types
+
+Flowbaker supports a wide range of integration types:
+
+```go
+type IntegrationType string
+
+const (
+    // Communication
+    IntegrationType_Discord  IntegrationType = "discord"
+    IntegrationType_Slack    IntegrationType = "slack"
+    IntegrationType_Email    IntegrationType = "email"
+    IntegrationType_Gmail    IntegrationType = "gmail"
+    IntegrationType_Teams    IntegrationType = "teams"
+    IntegrationType_Telegram IntegrationType = "telegram"
+    
+    // Development
+    IntegrationType_Github IntegrationType = "github"
+    IntegrationType_Gitlab IntegrationType = "gitlab"
+    IntegrationType_Jira   IntegrationType = "jira"
+    IntegrationType_Linear IntegrationType = "linear"
+    
+    // AI & ML
+    IntegrationType_OpenAI    IntegrationType = "openai"
+    IntegrationType_Anthropic IntegrationType = "anthropic"
+    IntegrationType_Gemini    IntegrationType = "gemini"
+    IntegrationType_Groq      IntegrationType = "groq"
+    IntegrationType_AIAgent   IntegrationType = "ai_agent"
+    
+    // Storage & Databases
+    IntegrationType_PostgreSQL IntegrationType = "postgresql"
+    IntegrationType_MongoDB    IntegrationType = "mongodb"
+    IntegrationType_Redis      IntegrationType = "redis"
+    IntegrationType_Snowflake  IntegrationType = "snowflake"
+    IntegrationType_AwsS3      IntegrationType = "aws_s3"
+    IntegrationType_Dropbox    IntegrationType = "dropbox"
+    
+    // Productivity
+    IntegrationType_GoogleSheets IntegrationType = "google_sheets"
+    IntegrationType_Drive        IntegrationType = "google_drive"
+    IntegrationType_Notion       IntegrationType = "notion"
+    
+    // Utilities
+    IntegrationType_HTTP      IntegrationType = "http"
+    IntegrationType_Webhook   IntegrationType = "webhook"
+    IntegrationType_Cron      IntegrationType = "cron"
+    IntegrationType_Transform IntegrationType = "transform"
+    IntegrationType_Condition IntegrationType = "condition"
+    
+    // ... and many more
+)
+```
+
+<Info>
+Flowbaker supports over 50 integrations. Check the platform dashboard for the complete list.
+</Info>
+
+## Integration Actions
+
+Actions are operations that an integration can perform:
+
+```go
+type IntegrationAction struct {
+    ID                            string
+    ActionType                    IntegrationActionType
+    Name                          string
+    Description                   string
+    Properties                    []NodeProperty
+    HandlesByContext              map[ActionUsageContext]ContextHandles
+    SupportedContexts             []ActionUsageContext
+    CombinedContexts              []ActionUsageContext
+    IsNonAvailableForDefaultOAuth bool
+    Decoration                    NodeDecoration
+}
+```
+
+### Action Properties
+
+- **ActionType**: Unique identifier for this action
+- **Properties**: Configuration parameters the action requires
+- **HandlesByContext**: Input/output handles for different usage contexts
+- **SupportedContexts**: Where this action can be used (workflow, tool, etc.)
+- **Decoration**: UI hints like buttons or disabled editor
+
+### Finding Actions
+
+You can retrieve a specific action from an integration:
+
+```go
+func (i Integration) GetActionByType(actionType IntegrationActionType) (IntegrationAction, bool)
+```
+
+### Example Actions
+
+<AccordionGroup>
+  <Accordion title="Discord - Send Message">
+    Send a message to a Discord channel with rich embeds and attachments.
+  </Accordion>
+  
+  <Accordion title="GitHub - Create Issue">
+    Create a new issue in a GitHub repository with labels and assignees.
+  </Accordion>
+  
+  <Accordion title="PostgreSQL - Execute Query">
+    Run SQL queries against a PostgreSQL database.
+  </Accordion>
+  
+  <Accordion title="OpenAI - Chat Completion">
+    Generate AI responses using OpenAI's language models.
+  </Accordion>
+</AccordionGroup>
+
+## Integration Triggers
+
+Triggers listen for events and start workflow execution:
+
+```go
+type IntegrationTrigger struct {
+    ID                            string
+    EventType                     IntegrationTriggerEventType
+    Name                          string
+    Description                   string
+    Properties                    []NodeProperty
+    HandlesByContext              map[ActionUsageContext]ContextHandles
+    IsNonAvailableForDefaultOAuth bool
+    Decoration                    NodeDecoration
+}
+```
+
+### Trigger Properties
+
+- **EventType**: Unique identifier for this trigger event
+- **Properties**: Configuration parameters for the trigger
+- **HandlesByContext**: Output handles that provide data to downstream nodes
+
+### Finding Triggers
+
+Retrieve a specific trigger from an integration:
+
+```go
+func (i Integration) GetTriggerByType(triggerType IntegrationTriggerEventType) (IntegrationTrigger, bool)
+```
+
+### Common Trigger Types
+
+<CardGroup cols={2}>
+  <Card title="Webhook" icon="webhook">
+    Receive HTTP requests from external services
+  </Card>
+  <Card title="Cron" icon="clock">
+    Schedule-based execution at specific times
+  </Card>
+  <Card title="File Upload" icon="file-arrow-up">
+    Trigger when files are uploaded
+  </Card>
+  <Card title="Click" icon="hand-pointer">
+    Manual triggers activated by users
+  </Card>
+</CardGroup>
+
+## Node Handles
+
+Handles define the connection points for data flow between nodes:
+
+```go
+type NodeHandle struct {
+    Index               int
+    Type                NodeHandleType
+    Position            NodeHandlePosition
+    Text                string
+    UsageContext        ActionUsageContext
+    AllowedIntegrations []IntegrationType
+}
+
+type ContextHandles struct {
+    Input  []NodeHandle
+    Output []NodeHandle
+}
+```
+
+### Handle Types
+
+```go
+const (
+    NodeHandleTypeDefault     NodeHandleType = "default"
+    NodeHandleTypeSuccess     NodeHandleType = "success"
+    NodeHandleTypeDestructive NodeHandleType = "destructive"
+)
+```
+
+- **default**: Standard data flow
+- **success**: Executed on successful completion
+- **destructive**: For error or failure paths
+
+### Handle Positions
+
+```go
+const (
+    NodeHandlePositionTop    NodeHandlePosition = "top"
+    NodeHandlePositionBottom NodeHandlePosition = "bottom"
+    NodeHandlePositionLeft   NodeHandlePosition = "left"
+    NodeHandlePositionRight  NodeHandlePosition = "right"
+)
+```
+
+Handle positions determine where connections appear on the node in visual editors.
+
+## Integration Input & Output
+
+When a node executes, it receives input and produces output:
+
+### Integration Input
+
+```go
+type IntegrationInput struct {
+    NodeID            string
+    PayloadByInputID  map[string]Payload
+    IntegrationParams IntegrationParams
+    ActionType        IntegrationActionType
+    Workflow          *Workflow
+}
+
+type IntegrationParams struct {
+    Settings map[string]any
+}
+```
+
+The input includes:
+- **NodeID**: Which node is being executed
+- **PayloadByInputID**: Data from upstream nodes
+- **IntegrationParams**: Node configuration settings
+- **ActionType**: Which action to perform
+- **Workflow**: Reference to the parent workflow
+
+### Integration Output
+
+```go
+type IntegrationOutput struct {
+    ResultJSONByOutputID []Payload
+}
+```
+
+The output contains an array of payloads, one for each output handle. These payloads flow to downstream nodes.
+
+## Credentials
+
+Many integrations require authentication credentials:
+
+### Credential Properties
+
+Integrations define which credential properties they need:
+
+```go
+CredentialProperties []NodeProperty
+```
+
+Common credential types include:
+- API keys
+- OAuth tokens
+- Username/password combinations
+- Service account credentials
+
+### Testing Connections
+
+Integrations with `CanTestConnection: true` allow you to validate credentials before using them in workflows.
+
+<Warning>
+Always test your integration credentials before activating workflows to ensure proper authentication.
+</Warning>
+
+## Integration Dependencies
+
+Integrations have access to various platform services through dependencies:
+
+```go
+type IntegrationDeps struct {
+    FlowbakerClient            flowbaker.ClientInterface
+    ExecutorTaskPublisher      ExecutorTaskPublisher
+    TaskSchedulerService       TaskSchedulerService
+    ParameterBinder            IntegrationParameterBinder
+    IntegrationSelector        IntegrationSelector
+    ExecutorStorageManager     ExecutorStorageManager
+    ExecutorCredentialManager  ExecutorCredentialManager
+    ExecutorIntegrationManager ExecutorIntegrationManager
+    ExecutorScheduleManager    ExecutorScheduleManager
+    ExecutorKnowledgeManager   ExecutorKnowledgeManager
+    ExecutorModelManager       ExecutorModelManager
+}
+```
+
+These dependencies provide:
+- Communication with the Flowbaker platform
+- Task scheduling and execution
+- Credential management
+- Storage operations
+- Knowledge base access
+- AI model management
+
+## Usage Contexts
+
+Integrations can be used in different contexts:
+
+```go
+type ActionUsageContext string
+
+const (
+    UsageContextWorkflow       ActionUsageContext = "workflow"        // Regular workflow automation
+    UsageContextTool           ActionUsageContext = "tool"            // AI Agent tool
+    UsageContextLLMProvider    ActionUsageContext = "llm_provider"    // LLM provider for AI agents
+    UsageContextMemoryProvider ActionUsageContext = "memory_provider" // Memory provider for AI agents
+)
+```
+
+This allows the same integration to serve multiple purposes:
+- As workflow automation nodes
+- As tools available to AI agents
+- As AI providers (LLM, memory, embeddings)
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Workflows" icon="diagram-project" href="/concepts/workflows">
+    Learn how to build workflows with integrations
+  </Card>
+  <Card title="Executors" icon="server" href="/concepts/executors">
+    Understand how executors run your integrations
+  </Card>
+</CardGroup>

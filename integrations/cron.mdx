@@ -1,0 +1,200 @@
+---
+title: 'Schedule'
+description: 'Schedule workflows to run at specific times using cron expressions or simple intervals.'
+---
+
+## Overview
+
+The Schedule integration (formerly Cron) allows you to trigger workflows on a schedule using either simple interval-based triggers or advanced cron expressions.
+
+## Configuration
+
+The Schedule integration does not require any credentials or authentication.
+
+## Available Triggers
+
+### Simple Schedule
+
+Trigger workflows at simple, regular intervals.
+
+**Parameters:**
+- **Interval**: The interval type (Minute, Hour, or Day)
+- **Minute Value**: Trigger every N minutes (when Interval = Minute)
+- **Hour Value**: Trigger every N hours (when Interval = Hour)
+- **Day Value**: Trigger every N days (when Interval = Day)
+
+**Examples:**
+
+```json
+// Every 15 minutes
+{
+  "interval": "minute",
+  "minute": 15
+}
+```
+
+```json
+// Every 6 hours
+{
+  "interval": "hour",
+  "hour": 6
+}
+```
+
+```json
+// Every 1 day
+{
+  "interval": "day",
+  "day": 1
+}
+```
+
+### Cron Schedule
+
+Trigger workflows using cron expressions for precise scheduling.
+
+**Parameters:**
+- **Cron**: A valid cron expression (timezone is UTC-0)
+
+**Cron Expression Format:**
+```
+┌───────────── minute (0 - 59)
+│ ┌───────────── hour (0 - 23)
+│ │ ┌───────────── day of the month (1 - 31)
+│ │ │ ┌───────────── month (1 - 12)
+│ │ │ │ ┌───────────── day of the week (0 - 6) (Sunday to Saturday)
+│ │ │ │ │
+│ │ │ │ │
+* * * * *
+```
+
+**Common Cron Examples:**
+
+```bash
+# Every day at 9:00 AM UTC
+0 9 * * *
+
+# Every Monday at 8:00 AM UTC
+0 8 * * 1
+
+# Every hour at minute 0
+0 * * * *
+
+# Every 30 minutes
+*/30 * * * *
+
+# Every weekday at 6:00 PM UTC
+0 18 * * 1-5
+
+# First day of every month at midnight UTC
+0 0 1 * *
+
+# Every 15 minutes during business hours (9 AM - 5 PM UTC)
+*/15 9-17 * * *
+```
+
+## Example Workflows
+
+### Daily Data Sync
+
+1. **Trigger**: Cron - `0 2 * * *` (2 AM UTC daily)
+2. **Action**: Fetch data from API
+3. **Action**: Update database
+
+### Hourly Report Generation
+
+1. **Trigger**: Simple - Every 1 hour
+2. **Action**: Query database for metrics
+3. **Action**: Send email report
+
+### Weekly Cleanup
+
+1. **Trigger**: Cron - `0 0 * * 0` (Midnight every Sunday)
+2. **Action**: Delete old records
+3. **Action**: Archive data
+
+### Business Hours Monitoring
+
+1. **Trigger**: Cron - `*/5 9-17 * * 1-5` (Every 5 minutes, Mon-Fri, 9 AM-5 PM)
+2. **Action**: Check system health
+3. **Action**: Send alert if issues detected
+
+## Cron Special Characters
+
+| Character | Description | Example |
+|-----------|-------------|--------|
+| `*` | Any value | `* * * * *` (every minute) |
+| `,` | Value list separator | `0 9,17 * * *` (9 AM and 5 PM) |
+| `-` | Range of values | `0 9-17 * * *` (every hour from 9 AM to 5 PM) |
+| `/` | Step values | `*/15 * * * *` (every 15 minutes) |
+
+## Tips and Best Practices
+
+### Choosing Between Simple and Cron
+
+- Use **Simple** for straightforward, regular intervals
+- Use **Cron** for specific times or complex schedules
+
+### Timezone Considerations
+
+- All cron schedules use UTC-0 timezone
+- Convert your local time to UTC when setting schedules
+- Account for daylight saving time changes
+
+### Performance Tips
+
+- Avoid scheduling workflows too frequently (consider resource usage)
+- Use appropriate intervals based on data freshness requirements
+- Schedule heavy operations during off-peak hours
+
+### Testing Schedules
+
+- Use cron expression validators to test your expressions
+- Start with a test schedule (e.g., every minute) to verify workflow execution
+- Update to production schedule after testing
+
+### Common Patterns
+
+**Backup Schedule:**
+```bash
+# Every night at 2 AM
+0 2 * * *
+```
+
+**Business Hours:**
+```bash
+# Every hour during business hours (9 AM - 6 PM, Mon-Fri)
+0 9-18 * * 1-5
+```
+
+**End of Month:**
+```bash
+# Last day of every month at midnight
+0 0 28-31 * *
+```
+
+**Quarterly:**
+```bash
+# First day of Jan, Apr, Jul, Oct at midnight
+0 0 1 1,4,7,10 *
+```
+
+## Troubleshooting
+
+### Workflow Not Triggering
+
+- Verify cron expression is valid
+- Check timezone conversion (remember UTC-0)
+- Ensure workflow is enabled
+- Review workflow execution logs
+
+### Unexpected Trigger Times
+
+- Confirm timezone is UTC-0
+- Validate cron expression using online tools
+- Check for special characters usage
+
+## Resources
+
+- [Crontab Guru](https://crontab.guru/) - Cron expression editor and validator
+- [Time Zone Converter](https://www.worldtimebuddy.com/) - Convert local time to UTC

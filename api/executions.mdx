@@ -1,0 +1,518 @@
+---
+title: 'Execution Endpoints'
+description: 'Start, stop, and manage workflow executions'
+---
+
+## Start Execution
+
+Starts a new workflow execution.
+
+```bash
+POST /workspaces/:workspaceID/executions
+```
+
+### Path Parameters
+
+<ParamField path="workspaceID" type="string" required>
+  The unique identifier of the workspace
+</ParamField>
+
+### Request Body
+
+<ParamField body="execution_id" type="string" required>
+  Unique identifier for this execution
+</ParamField>
+
+<ParamField body="workflow" type="Workflow" required>
+  The workflow definition to execute. See [Workflow model](/api/workflow)
+</ParamField>
+
+<ParamField body="event_name" type="string" required>
+  The name of the event triggering this execution
+</ParamField>
+
+<ParamField body="payload_json" type="byte[]" required>
+  The JSON payload data for the execution
+</ParamField>
+
+<ParamField body="enable_events" type="boolean" default="false">
+  Whether to emit execution events
+</ParamField>
+
+<ParamField body="workflow_type" type="string" required>
+  Type of workflow. Options: `default`, `testing`
+</ParamField>
+
+<ParamField body="workspace" type="Workspace" required>
+  Workspace information including ID, name, and usage limits
+</ParamField>
+
+<ParamField body="user_id" type="string">
+  User ID (required for testing workflows)
+</ParamField>
+
+<ParamField body="testing_workflow" type="TestingWorkflow">
+  Testing workflow configuration (required when workflow_type is `testing`)
+</ParamField>
+
+### Response
+
+<ResponseField name="payload" type="byte[]">
+  The execution result payload
+</ResponseField>
+
+<ResponseField name="headers" type="map[string][]string">
+  HTTP headers from the execution response
+</ResponseField>
+
+<ResponseField name="status_code" type="integer">
+  HTTP status code of the execution result
+</ResponseField>
+
+### Example Request
+
+```bash
+curl -X POST \
+  http://localhost:8080/workspaces/ws-abc123/executions \
+  -H 'Content-Type: application/json' \
+  -H 'X-API-Signature: ed25519=...' \
+  -H 'X-API-Timestamp: 1709467200' \
+  -d '{
+    "execution_id": "exec-xyz789",
+    "event_name": "webhook_received",
+    "payload_json": "eyJkYXRhIjogInZhbHVlIn0=",
+    "enable_events": true,
+    "workflow_type": "default",
+    "workflow": {
+      "id": "wf-123",
+      "name": "My Workflow",
+      "workspace_id": "ws-abc123",
+      "nodes": [...]
+    },
+    "workspace": {
+      "id": "ws-abc123",
+      "name": "My Workspace"
+    }
+  }'
+```
+
+### Example Response
+
+```json
+{
+  "payload": "eyJyZXN1bHQiOiAic3VjY2VzcyJ9",
+  "headers": {
+    "Content-Type": ["application/json"]
+  },
+  "status_code": 200
+}
+```
+
+---
+
+## Stop Execution
+
+Stops a running workflow execution.
+
+```bash
+DELETE /workspaces/:workspaceID/executions/:executionID
+```
+
+### Path Parameters
+
+<ParamField path="workspaceID" type="string" required>
+  The unique identifier of the workspace
+</ParamField>
+
+<ParamField path="executionID" type="string" required>
+  The unique identifier of the execution to stop
+</ParamField>
+
+### Response
+
+<ResponseField name="success" type="boolean">
+  Always returns `true` (the operation is idempotent)
+</ResponseField>
+
+### Example Request
+
+```bash
+curl -X DELETE \
+  http://localhost:8080/workspaces/ws-abc123/executions/exec-xyz789 \
+  -H 'X-API-Signature: ed25519=...' \
+  -H 'X-API-Timestamp: 1709467200'
+```
+
+### Example Response
+
+```json
+{
+  "success": true
+}
+```
+
+---
+
+## Rerun Node
+
+Reruns a specific node within an execution.
+
+```bash
+POST /workspaces/:workspaceID/executions/:executionID/nodes/:nodeID
+```
+
+### Path Parameters
+
+<ParamField path="workspaceID" type="string" required>
+  The unique identifier of the workspace
+</ParamField>
+
+<ParamField path="executionID" type="string" required>
+  The unique identifier of the execution
+</ParamField>
+
+<ParamField path="nodeID" type="string" required>
+  The unique identifier of the node to rerun
+</ParamField>
+
+### Request Body
+
+<ParamField body="execution_id" type="string" required>
+  The execution ID (must match path parameter)
+</ParamField>
+
+<ParamField body="node_id" type="string" required>
+  The node ID (must match path parameter)
+</ParamField>
+
+<ParamField body="workflow" type="Workflow" required>
+  The workflow definition
+</ParamField>
+
+<ParamField body="node_execution_entry" type="NodeExecutionEntry" required>
+  Previous execution entry for this node
+</ParamField>
+
+### Response
+
+<ResponseField name="payload" type="byte[]">
+  The node execution result payload
+</ResponseField>
+
+### Example Request
+
+```bash
+curl -X POST \
+  http://localhost:8080/workspaces/ws-abc123/executions/exec-xyz/nodes/node-001 \
+  -H 'Content-Type: application/json' \
+  -H 'X-API-Signature: ed25519=...' \
+  -H 'X-API-Timestamp: 1709467200' \
+  -d '{
+    "execution_id": "exec-xyz",
+    "node_id": "node-001",
+    "workflow": {...},
+    "node_execution_entry": {...}
+  }'
+```
+
+---
+
+## Run Node
+
+Runs a specific node with provided input data.
+
+```bash
+POST /workspaces/:workspaceID/executions/:executionID/nodes/:nodeID/run
+```
+
+### Path Parameters
+
+<ParamField path="workspaceID" type="string" required>
+  The unique identifier of the workspace
+</ParamField>
+
+<ParamField path="executionID" type="string" required>
+  The unique identifier of the execution
+</ParamField>
+
+<ParamField path="nodeID" type="string" required>
+  The unique identifier of the node to run
+</ParamField>
+
+### Request Body
+
+<ParamField body="execution_id" type="string" required>
+  The execution ID
+</ParamField>
+
+<ParamField body="node_id" type="string" required>
+  The node ID
+</ParamField>
+
+<ParamField body="workflow" type="Workflow" required>
+  The workflow definition
+</ParamField>
+
+<ParamField body="items_by_input" type="map[string]byte[]" required>
+  Map of input IDs to their data (as byte arrays)
+</ParamField>
+
+### Response
+
+<ResponseField name="results" type="NodeExecutionEntry[]">
+  Array of execution results for the node
+</ResponseField>
+
+---
+
+## Handle Polling Event
+
+Handles a polling event for trigger nodes that poll external systems.
+
+```bash
+POST /workspaces/:workspaceID/polling-events
+```
+
+### Path Parameters
+
+<ParamField path="workspaceID" type="string" required>
+  The unique identifier of the workspace
+</ParamField>
+
+### Request Body
+
+<ParamField body="integration_type" type="string" required>
+  The type of integration (e.g., `cron`, `gmail`, `slack`)
+</ParamField>
+
+<ParamField body="trigger" type="WorkflowNode" required>
+  The trigger node configuration
+</ParamField>
+
+<ParamField body="workflow" type="Workflow" required>
+  The workflow definition
+</ParamField>
+
+<ParamField body="user_id" type="string" required>
+  The user ID associated with this polling event
+</ParamField>
+
+<ParamField body="workflow_type" type="string" required>
+  Type of workflow (`default` or `testing`)
+</ParamField>
+
+### Response
+
+<ResponseField name="last_modified_data" type="string">
+  Timestamp or cursor for the last modification detected
+</ResponseField>
+
+### Example Request
+
+```bash
+curl -X POST \
+  http://localhost:8080/workspaces/ws-abc123/polling-events \
+  -H 'Content-Type: application/json' \
+  -H 'X-API-Signature: ed25519=...' \
+  -H 'X-API-Timestamp: 1709467200' \
+  -d '{
+    "integration_type": "gmail",
+    "trigger": {
+      "id": "node-001",
+      "type": "trigger",
+      "integration_type": "gmail"
+    },
+    "workflow": {...},
+    "user_id": "user-123",
+    "workflow_type": "default"
+  }'
+```
+
+---
+
+## Test Connection
+
+Tests connectivity to an external integration.
+
+```bash
+POST /workspaces/:workspaceID/connection-test
+```
+
+### Path Parameters
+
+<ParamField path="workspaceID" type="string" required>
+  The unique identifier of the workspace
+</ParamField>
+
+### Request Body
+
+<ParamField body="integration_type" type="string" required>
+  The type of integration to test
+</ParamField>
+
+<ParamField body="credential_id" type="string" required>
+  The credential ID to use for testing
+</ParamField>
+
+<ParamField body="payload" type="map[string]any">
+  Additional configuration data for the test
+</ParamField>
+
+### Response
+
+<ResponseField name="success" type="boolean">
+  Whether the connection test succeeded
+</ResponseField>
+
+<ResponseField name="error" type="string">
+  Error message if the test failed
+</ResponseField>
+
+### Example Request
+
+```bash
+curl -X POST \
+  http://localhost:8080/workspaces/ws-abc123/connection-test \
+  -H 'Content-Type: application/json' \
+  -H 'X-API-Signature: ed25519=...' \
+  -H 'X-API-Timestamp: 1709467200' \
+  -d '{
+    "integration_type": "postgresql",
+    "credential_id": "cred-456",
+    "payload": {
+      "host": "localhost",
+      "port": 5432
+    }
+  }'
+```
+
+### Example Response
+
+```json
+{
+  "success": true
+}
+```
+
+---
+
+## Peek Data
+
+Peeks data from an integration (e.g., list databases, tables, channels).
+
+```bash
+POST /workspaces/:workspaceID/peek-data
+```
+
+### Path Parameters
+
+<ParamField path="workspaceID" type="string" required>
+  The unique identifier of the workspace
+</ParamField>
+
+### Request Body
+
+<ParamField body="integration_type" type="string" required>
+  The type of integration
+</ParamField>
+
+<ParamField body="credential_id" type="string" required>
+  The credential ID to use
+</ParamField>
+
+<ParamField body="user_id" type="string" required>
+  The user ID
+</ParamField>
+
+<ParamField body="peekable_type" type="string" required>
+  The type of data to peek (e.g., `databases`, `tables`, `channels`)
+</ParamField>
+
+<ParamField body="cursor" type="string">
+  Pagination cursor for cursor-based pagination
+</ParamField>
+
+<ParamField body="pagination" type="PaginationParams">
+  Pagination parameters (offset, limit)
+</ParamField>
+
+<ParamField body="payload_json" type="byte[]">
+  Additional configuration data
+</ParamField>
+
+### Response
+
+<ResponseField name="success" type="boolean">
+  Whether the peek operation succeeded
+</ResponseField>
+
+<ResponseField name="result" type="PeekResultItem[]">
+  Array of peeked data items
+</ResponseField>
+
+<ResponseField name="pagination" type="PaginationMetadata">
+  Pagination metadata including total count and next cursor
+</ResponseField>
+
+<ResponseField name="error" type="string">
+  Error message if the operation failed
+</ResponseField>
+
+### PeekResultItem Structure
+
+<ResponseField name="key" type="string">
+  Unique identifier for the item
+</ResponseField>
+
+<ResponseField name="value" type="string">
+  Display value for the item
+</ResponseField>
+
+<ResponseField name="content" type="string">
+  Additional content or metadata
+</ResponseField>
+
+### Example Request
+
+```bash
+curl -X POST \
+  http://localhost:8080/workspaces/ws-abc123/peek-data \
+  -H 'Content-Type: application/json' \
+  -H 'X-API-Signature: ed25519=...' \
+  -H 'X-API-Timestamp: 1709467200' \
+  -d '{
+    "integration_type": "postgresql",
+    "credential_id": "cred-456",
+    "user_id": "user-123",
+    "peekable_type": "tables",
+    "pagination": {
+      "offset": 0,
+      "limit": 50
+    }
+  }'
+```
+
+### Example Response
+
+```json
+{
+  "success": true,
+  "result": [
+    {
+      "key": "users",
+      "value": "users",
+      "content": "User accounts table"
+    },
+    {
+      "key": "orders",
+      "value": "orders",
+      "content": "Customer orders table"
+    }
+  ],
+  "pagination": {
+    "total": 2,
+    "offset": 0,
+    "limit": 50
+  }
+}
+```

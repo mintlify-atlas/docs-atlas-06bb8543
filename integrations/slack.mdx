@@ -1,0 +1,296 @@
+---
+title: "Slack Integration"
+description: "Send messages, add reactions, and integrate with Slack workspaces"
+---
+
+The Slack integration enables you to automate messaging, interact with channels, and respond to events in your Slack workspace.
+
+## Authentication
+
+The Slack integration uses OAuth 2.0 for secure authentication.
+
+### Setting Up OAuth
+
+1. Go to [Slack API](https://api.slack.com/apps)
+2. Click "Create New App" → "From scratch"
+3. Name your app and select your workspace
+4. Under "OAuth & Permissions", add the required scopes:
+   - `channels:read` - View basic channel information
+   - `chat:write` - Send messages
+   - `reactions:write` - Add emoji reactions
+   - `channels:history` - View message history
+5. Install the app to your workspace
+6. Copy the OAuth token (starts with `xoxb-`)
+
+### Connecting to Flowbaker
+
+1. In Flowbaker, go to workspace settings
+2. Navigate to "Credentials" → "Add Credential"
+3. Select "Slack" and click "Connect with OAuth"
+4. Authorize the Flowbaker app in Slack
+5. Your Slack account is now connected
+
+## Available Actions
+
+### Send Message
+
+Post a message to a Slack channel or direct message.
+
+**Parameters:**
+- `channel_id` (required): The channel or user to send the message to
+- `message` (required): The message text (supports Slack markdown)
+
+**Example:**
+```json
+{
+  "channel_id": "C1234567890",
+  "message": "Hello from Flowbaker! :wave:"
+}
+```
+
+**Output:**
+- `channel_id`: The channel where the message was sent
+- `timestamp`: The message timestamp (use this to reference the message)
+
+### Get Message
+
+Retrieve a specific message from a channel.
+
+**Parameters:**
+- `channel_id` (required): The channel containing the message
+- `message_id` (required): The timestamp ID of the message
+
+**Returns:** Message object with content, author, and metadata.
+
+### Add Reaction
+
+Add an emoji reaction to a message.
+
+**Parameters:**
+- `channel_id` (required): The channel containing the message
+- `timestamp` (required): The message timestamp (from Send Message output)
+- `emoji` (required): The emoji name (e.g., "thumbsup", without colons)
+
+**Example:**
+```json
+{
+  "channel_id": "C1234567890",
+  "timestamp": "1234567890.123456",
+  "emoji": "thumbsup"
+}
+```
+
+### Get Messages
+
+List messages from a channel with pagination support.
+
+**Parameters:**
+- `channel_id` (required): The channel to retrieve messages from
+- `limit` (optional): Number of messages to return (default: 100, max: 1000)
+- `cursor` (optional): Pagination cursor for fetching more results
+
+**Returns:**
+- Array of message objects
+- Pagination cursor for next page
+
+## Available Triggers
+
+### Slack Message Received
+
+Triggers when a new message is posted in a specified channel.
+
+**Configuration:**
+- `channel_id` (required): The channel to monitor
+
+**Event Data:**
+- `type`: Event type ("message")
+- `channel`: Channel ID
+- `user`: User ID who sent the message
+- `text`: Message text content
+- `ts`: Message timestamp
+- `thread_ts`: Thread timestamp (if message is in a thread)
+
+### Reaction Added
+
+Triggers when an emoji reaction is added to a message.
+
+**Configuration:**
+- `channel_id` (required): The channel to monitor
+
+**Event Data:**
+- `type`: "reaction_added"
+- `user`: User who added the reaction
+- `reaction`: The emoji name
+- `item`: Information about the message
+
+## Channel Types
+
+Slack supports different channel types:
+
+- **Public Channels**: Regular channels anyone can join
+- **Private Channels**: Invite-only channels
+- **Direct Messages**: Direct messages with users
+- **im**: Special value for private messages with the bot
+
+## Finding Channel IDs
+
+### Method 1: From Channel Details
+
+1. Right-click on a channel name
+2. Select "Copy link"
+3. The channel ID is the string after the last slash
+
+### Method 2: Using Flowbaker
+
+The channel picker in Flowbaker automatically shows and uses channel IDs for you.
+
+## Message Formatting
+
+Slack supports rich message formatting:
+
+### Basic Formatting
+
+```
+*bold text*
+_italic text_
+~strikethrough~
+`code`
+```code block```
+```
+
+### Mentions
+
+```
+<@U1234567890>  - Mention a user
+<#C1234567890>  - Link to a channel
+<!channel>      - Mention everyone in channel
+<!here>         - Mention active members
+```
+
+### Links
+
+```
+<https://example.com|Display Text>
+<https://example.com>  - Automatic link
+```
+
+## Example Workflows
+
+### Customer Support Bot
+
+1. **Trigger**: Slack Message Received (#support)
+2. **Condition**: Check if message contains keywords
+3. **OpenAI**: Generate helpful response
+4. **Slack**: Send Message (reply in thread)
+5. **Slack**: Add Reaction (checkmark)
+
+### Daily Standup Reminder
+
+1. **Trigger**: Cron (weekdays at 9 AM)
+2. **Slack**: Send Message to #standup channel
+3. **Transform**: Format reminder message
+
+### GitHub Integration
+
+1. **Trigger**: Webhook (from GitHub)
+2. **Transform**: Format PR information
+3. **Slack**: Send Message to #engineering
+4. **Slack**: Add Reaction (eyes emoji)
+
+### Alert System
+
+1. **Trigger**: Webhook (from monitoring system)
+2. **Condition**: Check alert severity
+3. **Slack**: Send Message to #alerts
+4. **Slack**: Mention relevant team members
+
+## Slack Bot Features
+
+### Reply in Threads
+
+To reply in a thread, include `thread_ts` in the message:
+
+```json
+{
+  "channel_id": "C1234567890",
+  "message": "This is a thread reply",
+  "thread_ts": "1234567890.123456"
+}
+```
+
+### Private Messages
+
+To send a DM, use the user ID as the channel:
+
+```json
+{
+  "channel_id": "U1234567890",
+  "message": "Private message"
+}
+```
+
+## Rate Limits
+
+Slack enforces rate limits:
+- Tier 1 methods: 1 request per minute
+- Tier 2 methods: 20 requests per minute
+- Tier 3 methods: 50 requests per minute
+- Tier 4 methods: 100+ requests per minute
+
+Flowbaker handles rate limiting automatically.
+
+## Permissions
+
+Ensure your Slack app has these OAuth scopes:
+
+**For messaging:**
+- `chat:write` - Send messages
+- `chat:write.public` - Send to channels the bot isn't in
+
+**For reading:**
+- `channels:read` - View channels
+- `channels:history` - Read message history
+- `im:read` - View DMs
+- `im:history` - Read DM history
+
+**For reactions:**
+- `reactions:write` - Add reactions
+- `reactions:read` - View reactions
+
+## Troubleshooting
+
+### "not_authed" error
+
+The OAuth token is invalid or expired. Reconnect your Slack account.
+
+### "channel_not_found" error
+
+The channel ID is incorrect or the bot doesn't have access to that channel.
+
+### "missing_scope" error
+
+Your Slack app needs additional OAuth scopes. Add them in the Slack API console.
+
+### Messages not appearing
+
+Check that:
+1. The bot has been added to the channel
+2. The channel ID is correct
+3. The OAuth token has `chat:write` scope
+
+## Best Practices
+
+1. **Use threads** for related messages to keep channels organized
+2. **Add reactions** to acknowledge messages without cluttering channels
+3. **Format messages** properly with markdown for better readability
+4. **Handle errors** gracefully in your workflows
+5. **Test in a sandbox** channel before deploying to production
+6. **Respect rate limits** to avoid throttling
+7. **Use mentions sparingly** to avoid notification fatigue
+
+## Resources
+
+- [Slack API Documentation](https://api.slack.com/)
+- [Message Formatting Guide](https://api.slack.com/reference/surfaces/formatting)
+- [OAuth Scopes Reference](https://api.slack.com/scopes)
+- [Block Kit Builder](https://api.slack.com/block-kit)

@@ -1,0 +1,321 @@
+---
+title: "OpenAI Integration"
+description: "Access GPT-4, GPT-5, DALL-E, and embeddings for powerful AI capabilities"
+---
+
+The OpenAI integration provides access to OpenAI's cutting-edge AI models including GPT for chat completions, DALL-E for image generation, and text embeddings.
+
+## Authentication
+
+You need an OpenAI API key to use this integration.
+
+### Getting Your API Key
+
+1. Go to [OpenAI Platform](https://platform.openai.com/)
+2. Sign in or create an account
+3. Navigate to "API keys" in your account settings
+4. Click "Create new secret key"
+5. Copy the key immediately (it won't be shown again)
+6. **Important**: Keep your API key secure and never commit it to version control
+
+### Adding to Flowbaker
+
+1. Navigate to your workspace settings
+2. Go to "Credentials" → "Add Credential"
+3. Select "OpenAI"
+4. Paste your API key
+5. Save the credential
+
+## Available Actions
+
+### Chat Completion
+
+Generate chat completions using OpenAI's GPT models.
+
+**Parameters:**
+- `model` (required): The GPT model to use (e.g., "gpt-4", "gpt-5")
+- `messages` (required): Array of conversation messages
+- `temperature` (optional): Creativity level (0-2, default: 0.7)
+- `max_tokens` (optional): Maximum tokens to generate (default: 150)
+
+**Message Format:**
+```json
+{
+  "messages": [
+    {
+      "role": "system",
+      "content": [{ "type": "text", "text": "You are a helpful assistant." }]
+    },
+    {
+      "role": "user",
+      "content": [{ "type": "text", "text": "What is the capital of France?" }]
+    }
+  ]
+}
+```
+
+**Available Models:**
+- **GPT-5 Series** (Latest): `gpt-5.2`, `gpt-5.1`, `gpt-5`, `gpt-5-mini`
+- **O-Series**: `o4-mini`, `o3`, `o3-mini`
+- **GPT-4 Series**: `gpt-4.1`, `gpt-4.5`, `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo`
+- **GPT-3.5 Series**: `gpt-3.5-turbo`
+
+**Output:**
+- `choices`: Array of completion choices
+- `usage`: Token usage information
+- `model`: The model used
+
+### Generate Image
+
+Create images using DALL-E models.
+
+**Parameters:**
+- `prompt` (required): Detailed description of the image to generate
+- `model` (required): "dall-e-3" or "dall-e-2"
+- `size` (optional): Image dimensions
+  - DALL-E 3: "1024x1024", "1024x1792", "1792x1024"
+  - DALL-E 2: "256x256", "512x512", "1024x1024"
+- `quality` (optional): "standard" or "hd" (DALL-E 3 only)
+- `style` (optional): "vivid" or "natural" (DALL-E 3 only)
+- `count` (optional): Number of images (1-10, DALL-E 2 only)
+
+**Example:**
+```json
+{
+  "prompt": "A serene mountain landscape at sunset with a lake reflection",
+  "model": "dall-e-3",
+  "size": "1024x1024",
+  "quality": "hd",
+  "style": "vivid"
+}
+```
+
+**Output:**
+- `files`: Array of generated image files
+- `data`: Metadata about the generation
+
+### AI Agent Chat
+
+Use OpenAI models within AI agents for autonomous task completion.
+
+**Parameters:**
+- `model` (required): The GPT model to use
+- `temperature` (optional): Creativity level (0-2)
+- `max_tokens` (optional): Maximum tokens to generate
+- `top_p` (optional): Nucleus sampling parameter
+- `frequency_penalty` (optional): Reduce repetition (0-1)
+- `presence_penalty` (optional): Encourage topic diversity (0-1)
+- `reasoning_effort` (optional): For O-series models ("low", "medium", "high")
+- `verbosity` (optional): Response verbosity level
+
+**Note:** This action is designed for use within AI Agent nodes and supports tool calling.
+
+## Model Selection Guide
+
+### GPT-5 Series (Recommended)
+
+**GPT-5.2** (Latest)
+- Most capable and up-to-date model
+- Best for complex reasoning and creative tasks
+- Highest context window
+- More expensive
+
+**GPT-5 Mini**
+- Faster and more cost-effective
+- Great for most conversational AI tasks
+- Good balance of capability and cost
+
+### O-Series Models
+
+**O4 Mini**, **O3**, **O3 Mini**
+- Optimized for specific use cases
+- Fast inference times
+- Different context windows and capabilities
+
+### GPT-4 Series
+
+**GPT-4o**
+- Multimodal (text and vision)
+- Great for image understanding
+- Lower cost than GPT-4 Turbo
+
+**GPT-4 Turbo**
+- Large context window (128k tokens)
+- Good for long documents
+- More expensive
+
+### DALL-E Models
+
+**DALL-E 3**
+- Highest quality image generation
+- Better prompt following
+- Only generates 1 image per request
+- More expensive
+
+**DALL-E 2**
+- Lower cost
+- Can generate multiple images (up to 10)
+- Smaller sizes available
+- Good for bulk generation
+
+## Example Workflows
+
+### AI Chatbot
+
+1. **Trigger**: Webhook or Slack Message
+2. **Transform**: Format conversation history
+3. **OpenAI**: Chat Completion with context
+4. **Response**: Send reply via Slack/Discord
+
+### Content Generator
+
+1. **Trigger**: Cron (daily)
+2. **OpenAI**: Chat Completion for blog post
+3. **Transform**: Format markdown
+4. **Notion**: Save to content database
+
+### Image Generation Pipeline
+
+1. **Trigger**: HTTP Request
+2. **OpenAI**: Generate Image from prompt
+3. **S3**: Upload image to storage
+4. **Transform**: Generate metadata
+5. **Database**: Save image reference
+
+### Document Analysis
+
+1. **Trigger**: Webhook (document uploaded)
+2. **Transform**: Extract text content
+3. **OpenAI**: Chat Completion (summarize)
+4. **OpenAI**: Generate Embeddings
+5. **Database**: Store summary and embeddings
+
+### AI Agent with Tools
+
+1. **Trigger**: Slack Message
+2. **AI Agent**: Configure with OpenAI model
+3. **Tools**: Connect GitHub, Jira, Database
+4. **AI Agent**: Execute with Chat action
+5. **Response**: Send completion message
+
+## Advanced Features
+
+### Vision Capabilities
+
+GPT-4o and GPT-4 Turbo support image inputs:
+
+```json
+{
+  "model": "gpt-4o",
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        { "type": "text", "text": "What's in this image?" },
+        { "type": "image", "image": "https://example.com/image.jpg" }
+      ]
+    }
+  ]
+}
+```
+
+### Function Calling
+
+OpenAI models support function calling for tool use within AI agents. This is automatically handled when using the AI Agent node.
+
+### Streaming Responses
+
+Flowbaker automatically handles streaming for real-time response generation in chat scenarios.
+
+## Token Limits & Context Windows
+
+| Model | Context Window | Max Output Tokens |
+|-------|----------------|-------------------|
+| GPT-5.2 | 128k tokens | 16k tokens |
+| GPT-5 | 128k tokens | 16k tokens |
+| O3 | 128k tokens | 16k tokens |
+| GPT-4o | 128k tokens | 16k tokens |
+| GPT-4 Turbo | 128k tokens | 4k tokens |
+| GPT-3.5 Turbo | 16k tokens | 4k tokens |
+
+**Note:** 1 token ≈ 4 characters or ≈ 0.75 words in English.
+
+## Pricing Considerations
+
+OpenAI charges based on tokens used:
+
+- **Input tokens**: Text sent to the model
+- **Output tokens**: Text generated by the model
+- **Image generation**: Per-image pricing
+
+**Cost optimization tips:**
+1. Use smaller models for simple tasks (e.g., GPT-3.5 Turbo)
+2. Limit `max_tokens` to avoid unnecessary generation
+3. Use caching for repeated prompts
+4. Choose appropriate image sizes and quality
+
+## Rate Limits
+
+OpenAI enforces rate limits based on your account tier:
+
+- **Free tier**: Lower limits
+- **Pay-as-you-go**: Higher limits
+- **Enterprise**: Custom limits
+
+Flowbaker automatically handles rate limiting and retries failed requests.
+
+## Error Handling
+
+### Common Errors
+
+**"Invalid API key"**
+- Check that your API key is correct
+- Ensure the key hasn't been revoked
+
+**"Rate limit exceeded"**
+- You've hit your account's rate limit
+- Wait a moment and retry
+- Consider upgrading your OpenAI plan
+
+**"Context length exceeded"**
+- Your input is too long for the model
+- Reduce message history or input size
+- Use a model with larger context window
+
+**"Insufficient quota"**
+- You've exceeded your usage quota
+- Add credits to your OpenAI account
+
+## Best Practices
+
+1. **System prompts**: Use clear system messages to set behavior
+2. **Temperature control**: Lower for factual tasks (0.2-0.5), higher for creative (0.7-1.0)
+3. **Token management**: Monitor token usage to control costs
+4. **Error handling**: Add error handling nodes to your workflows
+5. **Prompt engineering**: Be specific and clear in your prompts
+6. **Model selection**: Choose the right model for your use case
+7. **Caching**: Cache responses for identical prompts when possible
+8. **Security**: Never expose API keys in client-side code
+
+## Embeddings
+
+OpenAI provides embedding models for semantic search and similarity:
+
+**Available Models:**
+- `text-embedding-3-large`: Highest quality
+- `text-embedding-3-small`: Fast and cost-effective
+- `text-embedding-ada-002`: Legacy model
+
+**Use cases:**
+- Semantic search
+- Document similarity
+- Recommendation systems
+- Clustering
+
+## Resources
+
+- [OpenAI API Documentation](https://platform.openai.com/docs)
+- [GPT Best Practices](https://platform.openai.com/docs/guides/gpt-best-practices)
+- [DALL-E Guide](https://platform.openai.com/docs/guides/images)
+- [Pricing Information](https://openai.com/pricing)
+- [Rate Limits](https://platform.openai.com/docs/guides/rate-limits)

@@ -1,0 +1,122 @@
+---
+title: Dropbox Integration
+description: Upload, download, and manage files and folders in Dropbox with Flowbaker.
+---
+
+The Dropbox integration allows you to automate file storage and management operations in your Dropbox account.
+
+## Authentication
+
+Connect your Dropbox account using OAuth 2.0:
+
+- **Access Token**: OAuth authentication for Dropbox API access
+
+## Available Actions
+
+### File Operations
+
+#### Download File
+Download a file from Dropbox.
+
+**Parameters:**
+- `file_path` (required): Path to the file in Dropbox
+
+#### Upload File
+Upload a file to Dropbox.
+
+**Parameters:**
+- `file_path` (required): Destination path in Dropbox
+- `file_content` (required): File content to upload
+
+#### Move File
+Move a file to a different location.
+
+**Parameters:**
+- `from_path` (required): Current file path
+- `to_path` (required): Destination file path
+
+#### Copy File
+Copy a file to a new location.
+
+**Parameters:**
+- `from_path` (required): Source file path
+- `to_path` (required): Destination file path
+
+#### Delete File
+Delete a file from Dropbox.
+
+**Parameters:**
+- `file_path` (required): Path to the file to delete
+
+### Folder Operations
+
+#### Create Folder
+Create a new folder in Dropbox.
+
+**Parameters:**
+- `folder_path` (required): Path for the new folder
+
+#### Move Folder
+Move a folder to a different location.
+
+**Parameters:**
+- `from_path` (required): Current folder path
+- `to_path` (required): Destination folder path
+
+#### Copy Folder
+Copy a folder to a new location.
+
+**Parameters:**
+- `from_path` (required): Source folder path
+- `to_path` (required): Destination folder path
+
+#### Delete Folder
+Delete a folder from Dropbox.
+
+**Parameters:**
+- `folder_path` (required): Path to the folder to delete
+
+## Configuration Example
+
+```json
+{
+  "file_path": "/Documents/report.pdf",
+  "file_content": "{{file_data}}"
+}
+```
+
+## Path Formatting
+
+Dropbox paths must:
+- Start with a forward slash (`/`)
+- Use forward slashes as separators
+- Be case-sensitive
+
+Examples:
+- `/Documents/file.txt` ✓
+- `/Photos/2024/vacation.jpg` ✓
+- `Documents/file.txt` ✗ (missing leading slash)
+
+## Best Practices
+
+1. Always use absolute paths starting with `/`
+2. Use descriptive folder names for organization
+3. Check file existence before attempting to move or copy
+4. Handle errors gracefully when files don't exist
+5. Use file content type metadata when uploading
+6. Implement retry logic for network operations
+7. Be mindful of Dropbox API rate limits
+
+## File Size Limits
+
+- Maximum file size: 350 GB
+- Recommended chunk size for large files: 150 MB
+- Use chunked uploads for files larger than 150 MB
+
+## Common Use Cases
+
+- **Automated Backups**: Upload files to Dropbox on a schedule
+- **File Synchronization**: Keep files in sync across systems
+- **Report Distribution**: Generate and upload reports automatically
+- **Archive Management**: Move old files to archive folders
+- **Collaborative Workflows**: Share files with team members

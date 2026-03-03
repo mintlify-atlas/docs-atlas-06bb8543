@@ -1,0 +1,245 @@
+---
+title: 'JSON Web Token (JWT)'
+description: 'Create and decode JWT tokens with support for multiple signing algorithms.'
+---
+
+## Overview
+
+The JWT (JSON Web Token) integration allows you to create and decode JWT tokens for authentication and secure data transmission.
+
+## Configuration
+
+To set up the JWT integration, you need to provide:
+
+| Field | Description | Required |
+|-------|-------------|----------|
+| **JWT Secret Key** | The secret key used to generate JWT signatures | Yes |
+| **JWT Signature Algorithm** | The algorithm used to sign and verify JWTs | Yes |
+
+### Supported Algorithms
+
+#### HMAC Algorithms (Symmetric)
+- **HS256** - HMAC with SHA-256
+- **HS384** - HMAC with SHA-384
+- **HS512** - HMAC with SHA-512
+
+#### RSA Algorithms (Asymmetric)
+- **RS256** - RSA with SHA-256
+- **RS384** - RSA with SHA-384
+- **RS512** - RSA with SHA-512
+
+#### ECDSA Algorithms (Asymmetric)
+- **ES256** - ECDSA with SHA-256
+- **ES384** - ECDSA with SHA-384
+- **ES512** - ECDSA with SHA-512
+
+### Configuration Examples
+
+**HMAC (Symmetric Key):**
+```json
+{
+  "jwt_secret": "your-secret-key-here",
+  "jwt_algorithm": "HS256"
+}
+```
+
+**RSA (Private Key):**
+```json
+{
+  "jwt_secret": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----",
+  "jwt_algorithm": "RS256"
+}
+```
+
+## Available Actions
+
+### Create Token
+
+Create a JWT token with custom claims and expiration.
+
+**Parameters:**
+- **Claims**: The claims to include in the JWT token (JSON format)
+- **Expire Seconds**: The number of seconds until the JWT token expires
+
+**Example:**
+```json
+{
+  "claims": {
+    "user_id": "12345",
+    "email": "user@example.com",
+    "role": "admin"
+  },
+  "expire_seconds": 3600
+}
+```
+
+**Output:**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTIzNDUiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJyb2xlIjoiYWRtaW4iLCJleHAiOjE3MDk5NzYwMDB9.signature"
+}
+```
+
+### Decode Token
+
+Decode and verify a JWT token.
+
+**Parameters:**
+- **Token**: The JWT token to decode
+
+**Example:**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+**Output:**
+```json
+{
+  "claims": {
+    "user_id": "12345",
+    "email": "user@example.com",
+    "role": "admin",
+    "exp": 1709976000,
+    "iat": 1709972400
+  },
+  "valid": true
+}
+```
+
+## JWT Claims
+
+### Standard Claims
+
+While you can include any custom claims, JWT supports standard registered claims:
+
+| Claim | Description |
+|-------|-------------|
+| `iss` | Issuer - identifies who issued the token |
+| `sub` | Subject - identifies the subject of the token |
+| `aud` | Audience - identifies the recipients |
+| `exp` | Expiration Time - when the token expires (automatically set) |
+| `nbf` | Not Before - time before which token is not valid |
+| `iat` | Issued At - when the token was issued (automatically set) |
+| `jti` | JWT ID - unique identifier for the token |
+
+### Custom Claims
+
+You can include any custom claims in your JWT:
+
+```json
+{
+  "user_id": "12345",
+  "username": "johndoe",
+  "roles": ["admin", "editor"],
+  "permissions": {
+    "read": true,
+    "write": true,
+    "delete": false
+  }
+}
+```
+
+## Example Workflows
+
+### User Authentication
+
+1. User logs in with credentials
+2. **Action**: Create Token with user information
+3. Return token to client
+4. Client includes token in subsequent requests
+5. **Action**: Decode Token to verify and extract user info
+
+### API Authentication
+
+1. **Trigger**: Webhook receives API request
+2. Extract JWT from Authorization header
+3. **Action**: Decode Token to verify
+4. Process request if token is valid
+5. Return 401 if token is invalid or expired
+
+### Temporary Access Links
+
+1. **Action**: Create Token with resource ID and short expiration
+2. Send link with token to user
+3. When accessed:
+   - **Action**: Decode Token
+   - Verify expiration
+   - Grant access if valid
+
+### Service-to-Service Authentication
+
+1. Service A creates request
+2. **Action**: Create Token with service identifier
+3. Include token in request to Service B
+4. Service B:
+   - **Action**: Decode Token
+   - Verify service identity
+   - Process request
+
+## Security Best Practices
+
+### Secret Key Management
+
+- Use strong, randomly generated secret keys
+- Keep secret keys secure and never expose them
+- Rotate secret keys periodically
+- Use different keys for different environments
+
+### Algorithm Selection
+
+- Use **HS256** for simple use cases with symmetric keys
+- Use **RS256** when public key verification is needed
+- Use **ES256** for better performance with asymmetric keys
+- Avoid weak algorithms in production
+
+### Token Expiration
+
+- Set appropriate expiration times based on use case
+- Use short expiration for sensitive operations (5-15 minutes)
+- Use longer expiration for less sensitive data (1-24 hours)
+- Implement token refresh mechanisms for long-lived sessions
+
+### Token Storage
+
+- Store tokens securely on the client side
+- Use httpOnly cookies for web applications when possible
+- Never store tokens in localStorage for sensitive applications
+- Clear tokens on logout
+
+## Common Expiration Times
+
+| Use Case | Recommended Expiration |
+|----------|------------------------|
+| Access Token | 900 seconds (15 minutes) |
+| Refresh Token | 2592000 seconds (30 days) |
+| Password Reset | 3600 seconds (1 hour) |
+| Email Verification | 86400 seconds (24 hours) |
+| API Key | 31536000 seconds (1 year) |
+| Temporary Link | 300 seconds (5 minutes) |
+
+## Error Handling
+
+### Common Errors
+
+- **Invalid Token**: Token format is incorrect
+- **Expired Token**: Token has passed its expiration time
+- **Invalid Signature**: Token signature verification failed
+- **Algorithm Mismatch**: Token algorithm doesn't match configuration
+
+### Best Practices
+
+- Always validate tokens before processing
+- Return appropriate error codes (401 for invalid/expired)
+- Log authentication failures for security monitoring
+- Don't expose detailed error messages to clients
+
+## Tips
+
+- Test token creation and decoding with sample data first
+- Use online JWT decoders (like jwt.io) for debugging
+- Include only necessary claims to keep tokens small
+- Don't include sensitive data in token claims (they're not encrypted)
+- Verify the token signature on every request
+- Consider implementing token blacklisting for logout functionality

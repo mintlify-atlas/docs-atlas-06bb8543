@@ -1,0 +1,187 @@
+---
+title: 'flowbaker reset'
+description: 'Reset executor configuration and start fresh'
+---
+
+## Overview
+
+The `flowbaker reset` command resets the executor configuration and allows you to start fresh. This command removes all existing configuration including executor ID, API keys, and workspace assignments.
+
+## Usage
+
+```bash
+flowbaker reset
+```
+
+## Behavior
+
+When you run this command:
+
+1. All executor configuration is removed
+2. Executor ID and Ed25519 keys are deleted
+3. Workspace assignments are cleared
+4. API connection settings are reset
+
+After reset, you'll need to run `flowbaker start` to set up the executor again.
+
+## Examples
+
+### Reset and start fresh
+
+```bash
+flowbaker reset
+```
+
+**Output:**
+
+```
+✅ Configuration reset successfully
+Run 'flowbaker start' to begin setup
+```
+
+### Reset and immediately reconfigure
+
+```bash
+flowbaker reset && flowbaker start
+```
+
+This will reset the configuration and immediately start the setup process.
+
+## Use Cases
+
+### Change API Endpoint
+
+If you need to connect to a different Flowbaker API:
+
+```bash
+flowbaker reset
+flowbaker start
+# Follow prompts to configure new API endpoint
+```
+
+### Fix Configuration Issues
+
+When configuration becomes corrupted or misconfigured:
+
+```bash
+flowbaker reset
+flowbaker start
+```
+
+### Switch Executor Identity
+
+To register as a new executor with a different ID:
+
+```bash
+flowbaker reset
+flowbaker start
+# New executor ID will be generated
+```
+
+### Clean Up Test Environment
+
+After testing, clean up the executor configuration:
+
+```bash
+flowbaker reset
+```
+
+## What Gets Deleted
+
+<ParamField path="Executor ID" type="string">
+  The unique identifier for this executor instance is removed.
+</ParamField>
+
+<ParamField path="Ed25519 Keys" type="keys">
+  Authentication keys (both public and private) are deleted.
+</ParamField>
+
+<ParamField path="Workspace Assignments" type="array">
+  All workspace assignments and their API keys are cleared.
+</ParamField>
+
+<ParamField path="API Configuration" type="object">
+  API base URL and connection settings are reset.
+</ParamField>
+
+<ParamField path="Last Connected Timestamp" type="timestamp">
+  Connection history is cleared.
+</ParamField>
+
+## Safety Considerations
+
+<Warning>
+  This operation is **irreversible**. Once you reset the configuration, you cannot recover the previous executor ID or authentication keys.
+</Warning>
+
+### Before Resetting
+
+Consider these points before running reset:
+
+1. **Active Workflows**: Stop any running workflows that depend on this executor
+2. **Workspace Dependencies**: Notify workspace administrators that this executor will be unavailable
+3. **Backup**: If you need to preserve the executor ID, back up the configuration file first
+4. **Re-registration**: You'll need to re-register the executor with the Flowbaker API after reset
+
+## Configuration File Location
+
+The reset command removes the configuration file stored at:
+
+- **Linux/macOS**: `~/.flowbaker/config.yaml`
+- **Windows**: `%USERPROFILE%\.flowbaker\config.yaml`
+
+## After Reset
+
+Once reset is complete:
+
+1. Run `flowbaker start` to begin setup
+2. Follow the setup wizard prompts
+3. Register with the Flowbaker API
+4. Configure workspace assignments
+
+```bash
+flowbaker reset
+flowbaker start
+```
+
+## Verification
+
+Verify the reset was successful:
+
+```bash
+flowbaker status
+```
+
+```
+❌ Executor is not set up
+Run 'flowbaker start' to begin setup
+```
+
+## Troubleshooting
+
+### Reset Fails
+
+If the reset command fails:
+
+```bash
+# Manually remove configuration file
+rm ~/.flowbaker/config.yaml
+
+# Verify removal
+flowbaker status
+```
+
+### Permission Denied
+
+If you encounter permission errors:
+
+```bash
+# Check file permissions
+ls -la ~/.flowbaker/
+
+# Fix permissions if needed
+chmod 600 ~/.flowbaker/config.yaml
+
+# Try reset again
+flowbaker reset
+```

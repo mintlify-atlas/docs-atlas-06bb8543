@@ -1,0 +1,442 @@
+---
+title: 'Integration Model'
+description: 'Integration domain model and available integrations'
+---
+
+## Overview
+
+Integrations define the external services and tools that Flowbaker can connect to. Each integration provides actions and triggers that can be used in workflow nodes.
+
+## Integration Structure
+
+### Go Definition
+
+```go
+type Integration struct {
+    ID                   IntegrationType
+    Name                 string
+    Description          string
+    CredentialProperties []NodeProperty
+    Actions              []IntegrationAction
+    Triggers             []IntegrationTrigger
+    EmbeddingModels      []IntegrationEmbeddingModel
+    IsGroup              bool
+    CanTestConnection    bool
+    IsCredentialOptional bool
+}
+```
+
+### Fields
+
+<ParamField path="ID" type="IntegrationType">
+  Unique identifier for the integration (e.g., `slack`, `postgresql`, `openai`)
+</ParamField>
+
+<ParamField path="Name" type="string">
+  Human-readable name of the integration
+</ParamField>
+
+<ParamField path="Description" type="string">
+  Detailed description of what the integration does
+</ParamField>
+
+<ParamField path="CredentialProperties" type="[]NodeProperty">
+  Properties required for authentication (API keys, OAuth tokens, etc.)
+</ParamField>
+
+<ParamField path="Actions" type="[]IntegrationAction">
+  Available actions that can be performed with this integration
+</ParamField>
+
+<ParamField path="Triggers" type="[]IntegrationTrigger">
+  Available triggers that can start workflow executions
+</ParamField>
+
+<ParamField path="EmbeddingModels" type="[]IntegrationEmbeddingModel">
+  Available embedding models for AI/ML integrations
+</ParamField>
+
+<ParamField path="IsGroup" type="bool">
+  Whether this integration represents a group of related integrations
+</ParamField>
+
+<ParamField path="CanTestConnection" type="bool">
+  Whether the integration supports connection testing
+</ParamField>
+
+<ParamField path="IsCredentialOptional" type="bool">
+  Whether credentials are optional for this integration
+</ParamField>
+
+---
+
+## Integration Types
+
+Flowbaker supports 60+ integrations. Here are the available types:
+
+### Communication
+- `slack` - Slack messaging platform
+- `discord` - Discord messaging
+- `teams` - Microsoft Teams
+- `telegram` - Telegram messaging
+- `email` - Email (SMTP)
+- `gmail` - Gmail
+- `resend` - Resend email service
+
+### Databases
+- `postgresql` - PostgreSQL database
+- `mongodb` - MongoDB database
+- `redis` - Redis key-value store
+- `snowflake` - Snowflake data warehouse
+
+### AI & Machine Learning
+- `openai` - OpenAI GPT models
+- `anthropic` - Anthropic Claude models
+- `gemini` - Google Gemini
+- `groq` - Groq inference
+- `ai_agent` - AI Agent framework
+
+### Cloud Storage
+- `aws_s3` - Amazon S3
+- `dropbox` - Dropbox
+- `google_drive` - Google Drive
+
+### Development Tools
+- `github` - GitHub
+- `gitlab` - GitLab
+- `jira` - Jira project management
+- `linear` - Linear issue tracking
+
+### Productivity
+- `google_sheets` - Google Sheets
+- `notion` - Notion workspace
+
+### Utilities
+- `http` - HTTP requests
+- `webhook` - Webhook triggers
+- `cron` - Scheduled triggers
+- `transform` - Data transformation
+- `condition` - Conditional logic
+- `switch` - Switch/case logic
+
+### And many more...
+
+See `pkg/domain/integration.go:29` for the complete list.
+
+---
+
+## Integration Action
+
+```go
+type IntegrationAction struct {
+    ID                            string
+    ActionType                    IntegrationActionType
+    Name                          string
+    Description                   string
+    Properties                    []NodeProperty
+    HandlesByContext              map[ActionUsageContext]ContextHandles
+    SupportedContexts             []ActionUsageContext
+    CombinedContexts              []ActionUsageContext
+    IsNonAvailableForDefaultOAuth bool
+    Decoration                    NodeDecoration
+}
+```
+
+<ParamField path="ID" type="string">
+  Unique identifier for the action
+</ParamField>
+
+<ParamField path="ActionType" type="IntegrationActionType">
+  Type identifier for the action
+</ParamField>
+
+<ParamField path="Name" type="string">
+  Human-readable name
+</ParamField>
+
+<ParamField path="Description" type="string">
+  Description of what the action does
+</ParamField>
+
+<ParamField path="Properties" type="[]NodeProperty">
+  Configuration properties for the action
+</ParamField>
+
+<ParamField path="HandlesByContext" type="map[ActionUsageContext]ContextHandles">
+  Input/output handles for different usage contexts
+</ParamField>
+
+<ParamField path="SupportedContexts" type="[]ActionUsageContext">
+  Contexts where this action can be used
+</ParamField>
+
+<ParamField path="IsNonAvailableForDefaultOAuth" type="bool">
+  Whether default OAuth is unsupported
+</ParamField>
+
+<ParamField path="Decoration" type="NodeDecoration">
+  UI decoration settings
+</ParamField>
+
+---
+
+## Integration Trigger
+
+```go
+type IntegrationTrigger struct {
+    ID                            string
+    EventType                     IntegrationTriggerEventType
+    Name                          string
+    Description                   string
+    Properties                    []NodeProperty
+    HandlesByContext              map[ActionUsageContext]ContextHandles
+    IsNonAvailableForDefaultOAuth bool
+    Decoration                    NodeDecoration
+}
+```
+
+<ParamField path="ID" type="string">
+  Unique identifier for the trigger
+</ParamField>
+
+<ParamField path="EventType" type="IntegrationTriggerEventType">
+  Type identifier for the trigger event
+</ParamField>
+
+<ParamField path="Name" type="string">
+  Human-readable name
+</ParamField>
+
+<ParamField path="Description" type="string">
+  Description of when the trigger fires
+</ParamField>
+
+<ParamField path="Properties" type="[]NodeProperty">
+  Configuration properties for the trigger
+</ParamField>
+
+<ParamField path="HandlesByContext" type="map[ActionUsageContext]ContextHandles">
+  Output handles for different contexts
+</ParamField>
+
+---
+
+## Node Handles
+
+Handles define how nodes connect to each other:
+
+```go
+type NodeHandle struct {
+    Index               int
+    Type                NodeHandleType
+    Position            NodeHandlePosition
+    Text                string
+    UsageContext        ActionUsageContext
+    AllowedIntegrations []IntegrationType
+}
+```
+
+### Handle Types
+
+<ParamField path="default" type="NodeHandleType">
+  Standard connection handle
+</ParamField>
+
+<ParamField path="success" type="NodeHandleType">
+  Success path handle
+</ParamField>
+
+<ParamField path="destructive" type="NodeHandleType">
+  Error/failure path handle
+</ParamField>
+
+### Handle Positions
+
+<ParamField path="top" type="NodeHandlePosition">
+  Handle on top of node
+</ParamField>
+
+<ParamField path="bottom" type="NodeHandlePosition">
+  Handle on bottom of node
+</ParamField>
+
+<ParamField path="left" type="NodeHandlePosition">
+  Handle on left of node
+</ParamField>
+
+<ParamField path="right" type="NodeHandlePosition">
+  Handle on right of node
+</ParamField>
+
+---
+
+## Usage Context
+
+Integrations can be used in different contexts:
+
+```go
+type ActionUsageContext string
+
+const (
+    UsageContextWorkflow       ActionUsageContext = "workflow"
+    UsageContextTool           ActionUsageContext = "tool"
+    UsageContextLLMProvider    ActionUsageContext = "llm_provider"
+    UsageContextMemoryProvider ActionUsageContext = "memory_provider"
+)
+```
+
+<ParamField path="workflow" type="ActionUsageContext">
+  Regular workflow automation
+</ParamField>
+
+<ParamField path="tool" type="ActionUsageContext">
+  AI Agent tool
+</ParamField>
+
+<ParamField path="llm_provider" type="ActionUsageContext">
+  LLM provider for AI agents
+</ParamField>
+
+<ParamField path="memory_provider" type="ActionUsageContext">
+  Memory provider for AI agents
+</ParamField>
+
+---
+
+## Helper Methods
+
+### GetActionByType
+
+Retrieves a specific action from an integration.
+
+```go
+func (i Integration) GetActionByType(actionType IntegrationActionType) (IntegrationAction, bool)
+```
+
+**Example:**
+```go
+action, found := integration.GetActionByType("send_message")
+if found {
+    // Use the action
+}
+```
+
+### GetTriggerByType
+
+Retrieves a specific trigger from an integration.
+
+```go
+func (i Integration) GetTriggerByType(triggerType IntegrationTriggerEventType) (IntegrationTrigger, bool)
+```
+
+**Example:**
+```go
+trigger, found := integration.GetTriggerByType("new_email")
+if found {
+    // Use the trigger
+}
+```
+
+---
+
+## JSON Example
+
+```json
+{
+  "id": "slack",
+  "name": "Slack",
+  "description": "Send messages and interact with Slack workspaces",
+  "credential_props": [
+    {
+      "key": "oauth_token",
+      "name": "OAuth Token",
+      "type": "oauth",
+      "required": true,
+      "oauth_type": "slack"
+    }
+  ],
+  "actions": [
+    {
+      "id": "send_message",
+      "action_type": "send_message",
+      "name": "Send Message",
+      "description": "Send a message to a Slack channel",
+      "properties": [
+        {
+          "key": "channel",
+          "name": "Channel",
+          "type": "string",
+          "required": true,
+          "peekable": true,
+          "peekable_type": "channels"
+        },
+        {
+          "key": "message",
+          "name": "Message",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "id": "new_message",
+      "event_type": "new_message",
+      "name": "New Message",
+      "description": "Triggers when a new message is posted",
+      "properties": [
+        {
+          "key": "channel",
+          "name": "Channel",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "can_test_connection": true,
+  "is_credential_optional": false
+}
+```
+
+---
+
+## Peekable Data
+
+Many integrations support "peeking" to dynamically load options:
+
+```go
+type IntegrationPeekablePaginationType string
+
+const (
+    PeekablePaginationType_None   = "none"
+    PeekablePaginationType_Cursor = "cursor"
+    PeekablePaginationType_Offset = "offset"
+)
+```
+
+Examples:
+- List Slack channels
+- List database tables
+- List Google Drive folders
+- List GitHub repositories
+
+Use the [Peek Data endpoint](/api/executions#peek-data) to retrieve these options.
+
+---
+
+## Related Models
+
+<CardGroup cols={2}>
+  <Card title="Node Model" icon="circle-nodes" href="/api/node">
+    Learn about workflow nodes
+  </Card>
+  <Card title="Workflow Model" icon="diagram-project" href="/api/workflow">
+    Understand workflows
+  </Card>
+</CardGroup>
+
+## Source Code Reference
+
+Definition: `pkg/domain/integration.go:86`

@@ -1,0 +1,251 @@
+---
+title: "Installation"
+description: "Install Flowbaker Executor on your system using binaries or building from source"
+---
+
+## Prerequisites
+
+Before installing Flowbaker, ensure you have:
+
+- A system running Linux, macOS, or Windows
+- Network access to connect to the Flowbaker platform
+- Port `8081` available for the executor HTTP server
+
+<Note>
+  For building from source, you'll need **Go 1.25.0** or later installed.
+</Note>
+
+## Installation Methods
+
+<Tabs>
+  <Tab title="Download Binary">
+    <Steps>
+      <Step title="Download the binary">
+        Download the latest release for your platform from the [GitHub releases page](https://github.com/flowbaker/flowbaker/releases).
+
+        Choose the appropriate binary for your system:
+        - `flowbaker-linux-amd64` for Linux
+        - `flowbaker-darwin-amd64` for macOS (Intel)
+        - `flowbaker-darwin-arm64` for macOS (Apple Silicon)
+        - `flowbaker-windows-amd64.exe` for Windows
+      </Step>
+
+      <Step title="Make it executable">
+        On Linux or macOS, make the binary executable:
+
+        ```bash
+        chmod +x flowbaker-linux-amd64
+        mv flowbaker-linux-amd64 flowbaker
+        ```
+      </Step>
+
+      <Step title="Move to PATH (optional)">
+        For easier access, move the binary to a directory in your PATH:
+
+        ```bash Linux/macOS
+        sudo mv flowbaker /usr/local/bin/
+        ```
+
+        ```powershell Windows
+        # Move to a directory in your PATH, e.g.:
+        Move-Item flowbaker.exe C:\Windows\System32\flowbaker.exe
+        ```
+      </Step>
+
+      <Step title="Verify installation">
+        Verify the installation by checking the version:
+
+        ```bash
+        flowbaker --help
+        ```
+
+        You should see the Flowbaker CLI help message.
+      </Step>
+    </Steps>
+  </Tab>
+
+  <Tab title="Build from Source">
+    <Steps>
+      <Step title="Install Go">
+        Ensure you have **Go 1.25.0** or later installed. Check your Go version:
+
+        ```bash
+        go version
+        ```
+
+        If you need to install or upgrade Go, visit [golang.org/dl](https://golang.org/dl/).
+      </Step>
+
+      <Step title="Clone the repository">
+        Clone the Flowbaker repository from GitHub:
+
+        ```bash
+        git clone https://github.com/flowbaker/flowbaker.git
+        cd flowbaker
+        ```
+      </Step>
+
+      <Step title="Build the binary">
+        Build the Flowbaker executor binary:
+
+        ```bash
+        go build -o flowbaker cmd/main.go
+        ```
+
+        This creates a `flowbaker` binary in your current directory.
+      </Step>
+
+      <Step title="Move to PATH (optional)">
+        For easier access, move the binary to a directory in your PATH:
+
+        ```bash
+        sudo mv flowbaker /usr/local/bin/
+        ```
+      </Step>
+
+      <Step title="Verify installation">
+        Verify the build by running:
+
+        ```bash
+        flowbaker --help
+        ```
+
+        You should see the Flowbaker CLI help message with all available commands.
+      </Step>
+    </Steps>
+  </Tab>
+
+  <Tab title="Docker">
+    <Steps>
+      <Step title="Pull the Docker image">
+        Pull the latest Flowbaker Docker image:
+
+        ```bash
+        docker pull ghcr.io/flowbaker/flowbaker:latest
+        ```
+      </Step>
+
+      <Step title="Run the container">
+        Run Flowbaker in a Docker container:
+
+        ```bash
+        docker run -d \
+          --name flowbaker \
+          -p 8081:8081 \
+          -v flowbaker-data:/root/.flowbaker \
+          ghcr.io/flowbaker/flowbaker:latest start
+        ```
+
+        This command:
+        - Runs the container in detached mode (`-d`)
+        - Names the container `flowbaker`
+        - Exposes port `8081` for the HTTP server
+        - Mounts a volume for persistent configuration
+        - Starts the executor service
+      </Step>
+
+      <Step title="View logs">
+        View the executor logs to see the setup process:
+
+        ```bash
+        docker logs -f flowbaker
+        ```
+
+        Follow the interactive setup prompts in the logs.
+      </Step>
+
+      <Step title="Check status">
+        Check the executor status:
+
+        ```bash
+        docker exec flowbaker flowbaker status
+        ```
+      </Step>
+    </Steps>
+
+    <Note>
+      The Docker image is based on the `Dockerfile` in the repository and includes all necessary dependencies.
+    </Note>
+  </Tab>
+</Tabs>
+
+## Available Commands
+
+After installation, the Flowbaker CLI provides several commands:
+
+<CodeGroup>
+  ```bash Start Executor
+  flowbaker start
+  ```
+
+  ```bash Check Status
+  flowbaker status
+  ```
+
+  ```bash List Workspaces
+  flowbaker workspaces list
+  ```
+
+  ```bash Reset Configuration
+  flowbaker reset
+  ```
+</CodeGroup>
+
+<Card title="Command Reference" icon="terminal" href="/commands/start">
+  See detailed documentation for all available commands
+</Card>
+
+## Global Flags
+
+The following flags are available for all commands:
+
+| Flag | Description | Default |
+|------|-------------|--------|
+| `--debug` | Enable debug logging | `false` |
+| `--api-url` | Override API URL | Uses configured URL |
+
+<Tip>
+  Use `--debug` to troubleshoot connection or execution issues:
+  ```bash
+  flowbaker start --debug
+  ```
+</Tip>
+
+## Configuration Location
+
+Flowbaker stores its configuration in the following location:
+
+<CodeGroup>
+  ```bash Linux
+  ~/.flowbaker/config.json
+  ```
+
+  ```bash macOS
+  ~/.flowbaker/config.json
+  ```
+
+  ```bash Windows
+  %USERPROFILE%\.flowbaker\config.json
+  ```
+</CodeGroup>
+
+The configuration includes:
+- Executor ID
+- API base URL
+- Cryptographic keys (Ed25519 and X25519)
+- Workspace assignments
+
+<Warning>
+  Never share your configuration file as it contains private cryptographic keys. Keep it secure and back it up safely.
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Follow the quick start guide to run your first workflow
+  </Card>
+  <Card title="Configuration" icon="gear" href="/configuration/setup">
+    Learn about configuration options and advanced setup
+  </Card>
+</CardGroup>

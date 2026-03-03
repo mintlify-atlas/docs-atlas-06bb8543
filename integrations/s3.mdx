@@ -1,0 +1,161 @@
+---
+title: AWS S3 Integration
+description: Manage objects and buckets in Amazon S3 with Flowbaker's S3 integration.
+---
+
+The AWS S3 integration enables you to automate cloud storage operations including uploading, downloading, and managing objects in Amazon S3 buckets.
+
+## Authentication
+
+Configure your AWS credentials:
+
+- **AWS Access Key ID** (required): Your AWS access key
+- **AWS Secret Access Key** (required): Your AWS secret key
+- **AWS Region** (required): Region where your buckets are located
+
+## Available Actions
+
+### Object Operations
+
+#### Upload Object
+Upload a file or data to an S3 bucket.
+
+**Parameters:**
+- `bucket` (required): S3 bucket name
+- `key` (optional): Object key (path) for storage
+- `content` (required): File data or text content
+- `content_type` (optional): MIME type of the content
+- `metadata` (optional): Custom metadata as JSON
+
+#### Download Object
+Download an object from S3.
+
+**Parameters:**
+- `bucket` (required): S3 bucket name
+- `key` (required): Object key (path) to download
+
+#### Delete Object
+Delete an object from S3.
+
+**Parameters:**
+- `bucket` (required): S3 bucket name
+- `key` (required): Object key (path) to delete
+
+#### Copy Object
+Copy an object within or between buckets.
+
+**Parameters:**
+- `source_bucket` (required): Source bucket name
+- `source_key` (required): Source object key
+- `destination_bucket` (required): Destination bucket name
+- `destination_key` (optional): Destination key (uses source key if not provided)
+
+#### Get Object Info
+Get metadata and information about an object.
+
+**Parameters:**
+- `bucket` (required): S3 bucket name
+- `key` (required): Object key (path)
+
+#### List Objects
+List objects in a bucket with optional filtering.
+
+**Parameters:**
+- `bucket` (required): S3 bucket name
+- `prefix` (optional): Filter by prefix (folder path)
+- `max_keys` (optional): Maximum number of objects to return
+- `delimiter` (optional): Character for grouping keys (default: '/')
+- `fetch_owner` (optional): Include owner information
+- `continuation_token` (optional): Token for pagination
+- `start_after` (optional): Key to start listing after
+- `encoding_type` (optional): Encoding type for keys ('url')
+- `expected_bucket_owner` (optional): Account ID for verification
+- `request_payer` (optional): 'requester' pays for request
+
+### Bucket Operations
+
+#### Create Bucket
+Create a new S3 bucket.
+
+**Parameters:**
+- `bucket` (required): Bucket name
+- `object_ownership` (optional): Ownership control
+  - 'BucketOwnerEnforced': ACLs disabled
+  - 'BucketOwnerPreferred': Bucket owner preferred
+  - 'ObjectWriter': Object writer owns
+- `object_lock_enabled` (optional): Enable S3 Object Lock
+
+#### Delete Bucket
+Delete an empty S3 bucket.
+
+**Parameters:**
+- `bucket` (required): Bucket name to delete
+- `force` (optional): Delete all objects before deleting bucket
+
+## Configuration Example
+
+```json
+{
+  "bucket": "my-bucket",
+  "key": "uploads/document.pdf",
+  "content": "{{file_data}}",
+  "content_type": "application/pdf",
+  "metadata": {
+    "department": "sales",
+    "year": "2024"
+  }
+}
+```
+
+## Object Keys
+
+S3 object keys (paths) follow these guidelines:
+- Can be up to 1,024 bytes long
+- Use forward slashes (`/`) to create folder-like structure
+- Are case-sensitive
+- Can include any UTF-8 characters
+
+Examples:
+- `documents/report.pdf`
+- `images/2024/january/photo.jpg`
+- `backups/database-2024-01-15.sql`
+
+## Best Practices
+
+1. Use descriptive bucket names following AWS naming rules
+2. Organize objects with prefix-based folder structures
+3. Set appropriate content types for uploaded objects
+4. Use metadata for searchable attributes
+5. Enable versioning for important data
+6. Configure lifecycle policies for cost optimization
+7. Implement proper IAM permissions
+8. Use server-side encryption for sensitive data
+9. Monitor bucket sizes and costs
+10. Use multipart uploads for large files (>100MB)
+
+## AWS Regions
+
+Common AWS regions:
+- `us-east-1`: US East (N. Virginia)
+- `us-west-2`: US West (Oregon)
+- `eu-west-1`: Europe (Ireland)
+- `ap-southeast-1`: Asia Pacific (Singapore)
+- `ap-northeast-1`: Asia Pacific (Tokyo)
+
+## Storage Classes
+
+S3 offers multiple storage classes:
+- **Standard**: Frequently accessed data
+- **Intelligent-Tiering**: Automatic cost optimization
+- **Standard-IA**: Infrequent access
+- **Glacier**: Long-term archive
+- **Glacier Deep Archive**: Lowest cost archive
+
+## Common Use Cases
+
+- **File Storage**: Store application files and assets
+- **Backup and Archive**: Automated backup solutions
+- **Data Lakes**: Store raw data for analytics
+- **Static Website Hosting**: Host static websites
+- **Media Distribution**: Distribute images, videos, and downloads
+- **Log Storage**: Centralized log collection and storage

@@ -1,0 +1,247 @@
+---
+title: Nodes
+description: Understanding workflow nodes, node types, and node configuration in Flowbaker
+---
+
+# Nodes
+
+Nodes are the individual building blocks within a workflow. Each node represents a single step in your automation, whether it's receiving a trigger event or executing an action.
+
+## Node Structure
+
+A workflow node is represented by the `WorkflowNode` struct:
+
+```go
+type WorkflowNode struct {
+    ID                           string
+    WorkflowID                   string
+    Name                         string
+    Type                         NodeType
+    IntegrationType              IntegrationType
+    SubscribedEvents             []string
+    Positions                    NodePositions
+    IntegrationSettings          map[string]any
+    Settings                     NodeSettings
+    ExpressionSelectedProperties []string
+    ProvidedByAgent              []string
+    Inputs                       []NodeInput
+    UsageContext                 string
+    ParentID                     string
+    TriggerNodeOpts              TriggerNodeOpts
+    ActionNodeOpts               ActionNodeOpts
+}
+```
+
+### Key Properties
+
+- **ID**: Unique identifier for the node
+- **WorkflowID**: The workflow this node belongs to
+- **Type**: Whether this is a trigger or action node
+- **IntegrationType**: Which integration this node uses (e.g., Discord, GitHub)
+- **IntegrationSettings**: Configuration specific to the integration
+- **Settings**: Node execution settings like error handling and limits
+- **Inputs**: Input connections from other nodes
+- **ParentID**: For hierarchical node structures
+
+## Node Types
+
+There are two fundamental types of nodes in Flowbaker:
+
+```go
+type NodeType string
+
+const (
+    NodeTypeTrigger NodeType = "trigger"
+    NodeTypeAction  NodeType = "action"
+)
+```
+
+### Trigger Nodes
+
+Trigger nodes are the entry points for workflows. They listen for events and start workflow execution.
+
+```go
+type TriggerNodeOpts struct {
+    EventType IntegrationTriggerEventType
+}
+```
+
+**Common trigger types include:**
+
+- **Webhooks**: Receive HTTP requests from external services
+- **Cron**: Schedule-based triggers that run at specific times
+- **Click**: Manual triggers activated by user interaction
+- **Chat Trigger**: Triggers from chat applications
+- **On Error**: Special triggers that activate when errors occur
+
+<Info>
+A workflow can have multiple trigger nodes, each listening for different events.
+</Info>
+
+### Action Nodes
+
+Action nodes perform the actual work in your workflow. They execute when triggered by upstream nodes.
+
+```go
+type ActionNodeOpts struct {
+    ActionType IntegrationActionType
+}
+```
+
+**Action nodes can:**
+
+- Send messages to communication platforms
+- Transform and manipulate data
+- Make HTTP requests to external APIs
+- Query databases
+- Invoke AI models
+- Store and retrieve data
+
+## Node Inputs
+
+Nodes connect to each other through inputs. Each input can subscribe to events from upstream nodes:
+
+```go
+type NodeInput struct {
+    InputID          string
+    SubscribedEvents []string
+}
+```
+
+### How Node Connections Work
+
+1. **Output Events**: Each node produces output events (e.g., `output-node-id-0`)
+2. **Input Subscriptions**: Downstream nodes subscribe to these output events
+3. **Data Flow**: When an upstream node completes, it publishes data to its output events
+4. **Execution**: Subscribed nodes receive the data and execute
+
+```go
+func (n *WorkflowNode) GetInputByID(inputID string) (NodeInput, bool)
+```
+
+This method retrieves a specific input configuration by its ID.
+
+## Node Settings
+
+Node settings control execution behavior and error handling:
+
+```go
+type NodeSettings struct {
+    ReturnErrorAsItem       bool
+    OverwriteExecutionLimit bool
+    ExecutionLimit          int
+}
+```
+
+### Return Error as Item
+
+When `ReturnErrorAsItem` is enabled, node errors are converted into data items instead of stopping workflow execution:
+
+```json
+{
+  "error_message": "Connection timeout after 30 seconds"
+}
+```
+
+This allows you to:
+- Handle errors gracefully in downstream nodes
+- Log errors without stopping the workflow
+- Implement retry logic
+- Send error notifications
+
+<Warning>
+Be careful with `ReturnErrorAsItem` on critical nodes. Errors may pass silently if not properly handled downstream.
+</Warning>
+
+### Execution Limit
+
+The execution limit prevents infinite loops at the node level:
+
+- **OverwriteExecutionLimit**: Whether to use a custom limit for this node
+- **ExecutionLimit**: Maximum number of times this node can execute in a single workflow run
+
+If not set, nodes inherit the workflow-level execution limit (default: 1000).
+
+## Node Positions
+
+For visual workflow editors, nodes have position information:
+
+```go
+type NodePositions struct {
+    XPosition float64
+    YPosition float64
+}
+```
+
+These coordinates determine where the node appears in the workflow canvas.
+
+## Integration Settings
+
+Each node stores integration-specific configuration in `IntegrationSettings`:
+
+```go
+IntegrationSettings map[string]any
+```
+
+**Common settings include:**
+
+- `credential_id`: Authentication credentials for the integration
+- Integration-specific parameters (channel IDs, file paths, query strings, etc.)
+- API options and feature flags
+
+## Usage Contexts
+
+Nodes can be used in different contexts beyond standard workflows:
+
+```go
+type ActionUsageContext string
+
+const (
+    UsageContextWorkflow       ActionUsageContext = "workflow"        // Regular workflow automation
+    UsageContextTool           ActionUsageContext = "tool"            // AI Agent tool
+    UsageContextLLMProvider    ActionUsageContext = "llm_provider"    // LLM provider for AI agents
+    UsageContextMemoryProvider ActionUsageContext = "memory_provider" // Memory provider for AI agents
+)
+```
+
+The `UsageContext` field determines how the node is utilized:
+
+- **workflow**: Standard workflow automation
+- **tool**: Available as a tool for AI agents
+- **llm_provider**: Provides LLM capabilities to AI agents
+- **memory_provider**: Provides memory storage for AI agents
+
+<Note>
+Nodes with usage contexts other than "workflow" may not execute in standard workflow runs.
+</Note>
+
+## Expression Properties
+
+Nodes can use dynamic expressions to reference data from previous nodes:
+
+```go
+ExpressionSelectedProperties []string
+```
+
+This array tracks which properties in the node configuration use expression syntax to reference upstream data.
+
+## Agent-Provided Nodes
+
+For AI agent workflows, nodes can be dynamically provided by agents:
+
+```go
+ProvidedByAgent []string
+```
+
+This field lists which AI agents have contributed or modified this node.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Integrations" icon="plug" href="/concepts/integrations">
+    Explore the integrations you can use in nodes
+  </Card>
+  <Card title="Executors" icon="server" href="/concepts/executors">
+    Learn how executors run your workflow nodes
+  </Card>
+</CardGroup>

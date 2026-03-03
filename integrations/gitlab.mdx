@@ -1,0 +1,203 @@
+---
+title: GitLab Integration
+description: Manage GitLab projects, issues, merge requests, and files with Flowbaker's GitLab integration.
+---
+
+The GitLab integration enables you to automate your GitLab workflows by managing projects, issues, releases, and repository files programmatically.
+
+## Authentication
+
+Connect your GitLab account using OAuth 2.0:
+
+- **GitLab Account**: OAuth authentication for accessing your GitLab projects
+
+## Available Actions
+
+### File Operations
+
+#### Create File
+Create a new file in a repository.
+
+**Parameters:**
+- `project_id` (required): Project identifier (e.g., 'group/project')
+- `file_path` (required): Path to the file
+- `branch` (required): Branch name
+- `content` (required): File content
+- `commit_message` (required): Commit message
+
+#### Edit File
+Update an existing file.
+
+**Parameters:**
+- `project_id` (required): Project identifier
+- `file_path` (required): Path to the file
+- `branch` (required): Branch name
+- `content` (required): New file content
+- `commit_message` (required): Commit message
+
+#### Delete File
+Delete a file from repository.
+
+**Parameters:**
+- `project_id` (required): Project identifier
+- `file_path` (required): Path to the file to delete
+- `branch` (required): Branch name
+- `commit_message` (required): Commit message
+
+#### Get File
+Retrieve file content.
+
+**Parameters:**
+- `project_id` (required): Project identifier
+- `file_path` (required): Path to the file
+- `ref` (required): Branch name, tag, or commit SHA
+
+#### List Files
+List files in a directory.
+
+**Parameters:**
+- `project_id` (required): Project identifier
+- `path` (optional): Directory path (default: root)
+- `ref` (optional): Branch/tag/commit (default: default branch)
+
+### Issue Management
+
+#### Create Issue
+Create a new issue in a project.
+
+**Parameters:**
+- `project_id` (required): Project identifier
+- `title` (required): Issue title
+- `description` (optional): Issue description
+- `labels` (optional): Array of label names
+
+#### Get Issue
+Retrieve a specific issue.
+
+**Parameters:**
+- `project_id` (required): Project identifier
+- `issue_iid` (required): Issue internal ID
+
+#### Edit Issue
+Update an existing issue.
+
+**Parameters:**
+- `project_id` (required): Project identifier
+- `issue_iid` (required): Issue internal ID
+- `title` (optional): New title
+- `description` (optional): New description
+- `state` (optional): 'close' or 'reopen'
+- `labels` (optional): Array of label names
+
+#### Lock Issue
+Lock an issue to prevent further discussion.
+
+**Parameters:**
+- `project_id` (required): Project identifier
+- `issue_iid` (required): Issue internal ID
+
+#### Create Issue Comment
+Add a comment to an issue.
+
+**Parameters:**
+- `project_id` (required): Project identifier
+- `issue_iid` (required): Issue internal ID
+- `body` (required): Comment content
+
+### Release Management
+
+#### Create Release
+Create a new release.
+
+**Parameters:**
+- `project_id` (required): Project identifier
+- `tag_name` (required): Tag for the release
+- `name` (optional): Release name
+- `description` (optional): Release notes
+- `ref` (optional): Branch/commit to create tag from (if tag doesn't exist)
+
+#### Get Release
+Retrieve a specific release.
+
+**Parameters:**
+- `project_id` (required): Project identifier
+- `tag_name` (required): Tag of the release
+
+#### List Releases
+List all releases for a project.
+
+**Parameters:**
+- `project_id` (required): Project identifier
+
+#### Update Release
+Update an existing release.
+
+**Parameters:**
+- `project_id` (required): Project identifier
+- `tag_name` (required): Tag of the release
+- `name` (optional): New release name
+- `description` (optional): New release notes
+
+#### Delete Release
+Delete a release.
+
+**Parameters:**
+- `project_id` (required): Project identifier
+- `tag_name` (required): Tag of the release to delete
+
+### Repository Operations
+
+#### Get Repository
+Get project details.
+
+**Parameters:**
+- `project_id` (required): Project identifier
+
+#### Get Repository Issues
+List all issues in a project.
+
+**Parameters:**
+- `project_id` (required): Project identifier
+- `state` (optional): Filter by state ('all', 'opened', 'closed')
+
+#### Get User Repositories
+List repositories accessible to the authenticated user.
+
+**Parameters:**
+- `visibility` (optional): Filter by visibility ('public', 'internal', 'private')
+- `order_by` (optional): Sort by ('created_at', 'updated_at', 'name', 'path')
+
+## Available Triggers
+
+GitLab Event Listener supports multiple event types:
+
+- **Push**: Commits pushed to repository
+- **Tag Push**: Tags pushed to repository
+- **Issue**: Issue created, updated, or closed
+- **Note**: Comments on issues, merge requests, or commits
+- **Merge Request**: MR created, updated, or merged
+- **Wiki Page**: Wiki pages created or updated
+- **Pipeline**: Pipeline status changes
+- **Job**: Job status changes
+- **Deployment**: Deployment events
+- **Release**: Release created
+
+## Configuration Example
+
+```json
+{
+  "project_id": "my-group/my-project",
+  "file_path": "src/config.json",
+  "branch": "main",
+  "content": "{\"key\": \"value\"}",
+  "commit_message": "Update configuration"
+}
+```
+
+## Best Practices
+
+1. Use project path with namespace (e.g., 'group/project')
+2. Always specify the correct branch for file operations
+3. Provide clear commit messages
+4. Use labels to organize issues
+5. Test webhooks with non-production projects first

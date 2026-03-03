@@ -1,0 +1,265 @@
+---
+title: "Deployment"
+description: "Deploy and run the Flowbaker executor in your infrastructure"
+---
+
+The Flowbaker executor is a self-hosted service that runs workflows in your own infrastructure. This guide covers deployment strategies and running the executor.
+
+## Prerequisites
+
+Before deploying the Flowbaker executor, ensure you have:
+
+- A server or container runtime environment
+- Network connectivity to `api.flowbaker.io`
+- Port 8081 available (default executor port)
+- Internet access for downloading dependencies
+
+## Deployment Methods
+
+You can deploy the Flowbaker executor using several methods:
+
+### Docker Deployment (Recommended)
+
+The easiest way to deploy is using Docker. See the [Docker deployment guide](/self-hosting/docker) for detailed instructions.
+
+### Binary Deployment
+
+For direct binary deployment:
+
+<Steps>
+  <Step title="Download the binary">
+    Download the latest Flowbaker executor binary for your platform from the releases page.
+  </Step>
+
+  <Step title="Make it executable">
+    ```bash
+    chmod +x flowbaker
+    ```
+  </Step>
+
+  <Step title="Run initial setup">
+    ```bash
+    ./flowbaker start
+    ```
+    
+    On first run, the executor will guide you through an interactive setup process to:
+    - Generate cryptographic keys (X25519 and Ed25519)
+    - Configure the executor name and address
+    - Register with the Flowbaker API
+    - Set up workspace assignments
+  </Step>
+
+  <Step title="Verify the service">
+    The executor will start on port 8081 by default. Verify it's running:
+    
+    ```bash
+    curl http://localhost:8081/health
+    ```
+    
+    Expected response:
+    ```json
+    {
+      "status": "healthy",
+      "service": "flowbaker-executor",
+      "version": "...",
+      "timestamp": "..."
+    }
+    ```
+  </Step>
+</Steps>
+
+## Running the Executor
+
+### Starting the Service
+
+The executor uses a single command to start:
+
+```bash
+./flowbaker start
+```
+
+This command:
+- Loads configuration from `~/.flowbaker/config.json` or environment variables
+- Starts the HTTP server on port 8081
+- Establishes connection with the Flowbaker API
+- Begins listening for workflow execution requests
+
+### Service Lifecycle
+
+The executor service:
+
+1. **Initialization**: Loads configuration and validates setup
+2. **API Connection**: Authenticates with the Flowbaker API using Ed25519 signatures
+3. **Server Startup**: Starts the HTTP server with health check and execution endpoints
+4. **Ready State**: Waits for workflow execution requests from assigned workspaces
+5. **Graceful Shutdown**: Handles SIGINT/SIGTERM for clean shutdowns
+
+### Health Checks
+
+The executor exposes a health check endpoint at `/health`:
+
+```bash
+curl http://localhost:8081/health
+```
+
+This endpoint:
+- Requires no authentication
+- Returns service status and version information
+- Can be used for container health checks and load balancer probes
+
+## Configuration
+
+### Configuration File
+
+The executor stores its configuration in `~/.flowbaker/config.json`. This file contains:
+
+- Executor ID and name
+- API base URL
+- Cryptographic keys (X25519 and Ed25519)
+- Workspace assignments
+- Feature flags
+
+### Environment Variables
+
+You can override configuration using environment variables:
+
+```bash
+# Core Configuration
+FLOWBAKER_EXECUTOR_ID="your-executor-id"
+FLOWBAKER_EXECUTOR_NAME="my-executor"
+FLOWBAKER_EXECUTOR_ADDRESS="http://your-server:8081"
+FLOWBAKER_API_URL="https://api.flowbaker.io"
+
+# Cryptographic Keys
+FLOWBAKER_X25519_PRIVATE_KEY="..."
+FLOWBAKER_X25519_PUBLIC_KEY="..."
+FLOWBAKER_ED25519_PRIVATE_KEY="..."
+FLOWBAKER_ED25519_PUBLIC_KEY="..."
+
+# Feature Flags
+FLOWBAKER_ENABLE_WORKSPACE_REGISTRATION="true"
+FLOWBAKER_ENABLE_STATIC_PASSCODE="false"
+FLOWBAKER_SKIP_WORKSPACE_ASSIGNMENTS="false"
+
+# Static API Signature (Optional)
+STATIC_API_SIGNATURE_PUBLIC_KEY="..."
+```
+
+<Note>
+Environment variables take precedence over values in the configuration file.
+</Note>
+
+## Workspace Registration
+
+The executor supports two modes for workspace registration:
+
+### Dynamic Registration (Default)
+
+With `FLOWBAKER_ENABLE_WORKSPACE_REGISTRATION=true`, workspaces can register themselves with the executor at runtime. The executor stores workspace API keys in its configuration.
+
+### Static Configuration
+
+For production environments, you can:
+
+1. **Use static API signature verification** by setting `STATIC_API_SIGNATURE_PUBLIC_KEY`
+2. **Skip workspace assignments** with `FLOWBAKER_SKIP_WORKSPACE_ASSIGNMENTS=true`
+3. **Pre-configure workspace assignments** in the configuration file
+
+## System Requirements
+
+### Minimum Requirements
+
+- **CPU**: 1 core
+- **Memory**: 512 MB RAM
+- **Storage**: 100 MB for the binary and configuration
+- **Network**: Outbound HTTPS to `api.flowbaker.io`
+
+### Recommended Requirements
+
+- **CPU**: 2+ cores
+- **Memory**: 2 GB+ RAM (depending on workflow complexity)
+- **Storage**: 1 GB+ for logs and temporary files
+- **Network**: Low-latency connection for real-time workflow execution
+
+## Production Considerations
+
+### Process Management
+
+Use a process manager to keep the executor running:
+
+**systemd** (Linux):
+
+```ini
+[Unit]
+Description=Flowbaker Executor
+After=network.target
+
+[Service]
+Type=simple
+User=flowbaker
+WorkingDirectory=/opt/flowbaker
+ExecStart=/opt/flowbaker/flowbaker start
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
+**Docker Compose**:
+
+See the [Docker deployment guide](/self-hosting/docker) for Docker Compose configuration.
+
+### Monitoring
+
+- Monitor the `/health` endpoint for service availability
+- Collect logs from stdout/stderr
+- Set up alerts for executor disconnections
+- Track workflow execution metrics
+
+### Scaling
+
+You can run multiple executors:
+
+- Each executor must have a unique executor ID
+- Executors can be assigned to different workspaces
+- Load balancing happens at the workspace level
+
+## Troubleshooting
+
+### Executor Won't Start
+
+1. Check that port 8081 is available
+2. Verify configuration in `~/.flowbaker/config.json`
+3. Ensure network connectivity to `api.flowbaker.io`
+4. Check logs for specific error messages
+
+### Configuration Issues
+
+Reset the configuration and run setup again:
+
+```bash
+./flowbaker reset
+./flowbaker start
+```
+
+<Warning>
+Resetting configuration will delete all workspace assignments and cryptographic keys. You'll need to re-register with the Flowbaker API.
+</Warning>
+
+### Connection Problems
+
+- Verify the `FLOWBAKER_EXECUTOR_ADDRESS` is accessible from the internet
+- Check firewall rules allow inbound traffic on port 8081
+- Ensure the executor's public keys are registered with the API
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Docker Deployment" icon="docker" href="/self-hosting/docker">
+    Deploy using Docker containers
+  </Card>
+  <Card title="Security Best Practices" icon="shield" href="/self-hosting/security">
+    Secure your executor deployment
+  </Card>
+</CardGroup>

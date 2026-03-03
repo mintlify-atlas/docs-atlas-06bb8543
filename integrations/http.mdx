@@ -1,0 +1,208 @@
+---
+title: 'HTTP'
+description: 'Make HTTP requests to any API endpoint with flexible authentication and request body options.'
+---
+
+## Overview
+
+The HTTP integration allows you to make HTTP requests to any API endpoint. You can configure authentication, headers, query parameters, and request bodies for complete API integration flexibility.
+
+## Configuration
+
+The HTTP integration supports multiple authentication methods:
+
+| Authentication Method | Description |
+|----------------------|-------------|
+| **Basic Authentication** | Username and password authentication |
+| **Bearer Authentication** | Token-based authentication |
+| **Query Authentication** | Authentication via query parameters |
+| **Header Authentication** | Authentication via custom headers |
+| **JSON Body Authentication** | Authentication in request body |
+
+### Basic Authentication
+
+```json
+{
+  "generic_auth_type": "basic_auth",
+  "username": "your_username",
+  "password": "your_password"
+}
+```
+
+### Bearer Authentication
+
+```json
+{
+  "generic_auth_type": "bearer_auth",
+  "bearer_token": "your_token_here"
+}
+```
+
+### Query Authentication
+
+```json
+{
+  "generic_auth_type": "query_auth",
+  "query_auth_key": "api_key",
+  "query_auth_value": "your_api_key"
+}
+```
+
+### Header Authentication
+
+```json
+{
+  "generic_auth_type": "header_auth",
+  "header_auth_key": "X-API-Key",
+  "header_auth_value": "your_api_key"
+}
+```
+
+### JSON Body Authentication
+
+```json
+{
+  "generic_auth_type": "body_auth",
+  "body_auth": {"api_key": "your_key", "secret": "your_secret"}
+}
+```
+
+## Available Actions
+
+### GET Request
+
+Make an HTTP GET request.
+
+**Parameters:**
+- **URL**: The URL to send the request to
+- **Query Params**: Key-value pairs for query parameters
+- **Headers**: Key-value pairs for headers
+
+**Example:**
+```json
+{
+  "url": "https://api.example.com/users",
+  "query_params": [
+    {"key": "page", "value": "1"},
+    {"key": "limit", "value": "10"}
+  ],
+  "headers": [
+    {"key": "Accept", "value": "application/json"}
+  ]
+}
+```
+
+### POST Request
+
+Make an HTTP POST request.
+
+**Parameters:**
+- **URL**: The URL to send the request to
+- **Query Params**: Key-value pairs for query parameters
+- **Headers**: Key-value pairs for headers
+- **Body Type**: Type of request body (JSON, Text, URL Encoded Form Data, Multi-Part Form Data, File)
+- **Body**: The request body based on selected type
+
+**Example (JSON Body):**
+```json
+{
+  "url": "https://api.example.com/users",
+  "body_type": "json",
+  "json_body": {
+    "name": "John Doe",
+    "email": "john@example.com"
+  }
+}
+```
+
+**Example (URL Encoded Form Data):**
+```json
+{
+  "url": "https://api.example.com/login",
+  "body_type": "urlencoded_form_data",
+  "urlencoded_form_data_body": [
+    {"key": "username", "value": "john"},
+    {"key": "password", "value": "secret"}
+  ]
+}
+```
+
+### PUT Request
+
+Make an HTTP PUT request to update resources.
+
+**Parameters:** Same as POST request
+
+### PATCH Request
+
+Make an HTTP PATCH request to partially update resources.
+
+**Parameters:** Same as POST request
+
+### DELETE Request
+
+Make an HTTP DELETE request to remove resources.
+
+**Parameters:**
+- **URL**: The URL to send the request to
+- **Query Params**: Key-value pairs for query parameters
+- **Headers**: Key-value pairs for headers
+- **Body Type**: Type of request body (optional)
+- **Body**: The request body based on selected type (optional)
+
+## Body Types
+
+The HTTP integration supports multiple body types:
+
+### JSON
+Send JSON data in the request body.
+
+```json
+{
+  "user": {
+    "name": "John",
+    "age": 30
+  }
+}
+```
+
+### Text
+Send plain text in the request body.
+
+### URL Encoded Form Data
+Send form data as `application/x-www-form-urlencoded`.
+
+### Multi-Part Form Data
+Send files and data as `multipart/form-data`.
+
+### File (Octet Stream)
+Send a file as binary data.
+
+## Example Workflows
+
+### REST API Integration
+
+1. **GET Request**: Fetch data from API
+2. **POST Request**: Create new resource
+3. **PUT Request**: Update existing resource
+4. **DELETE Request**: Remove resource
+
+### File Upload
+
+1. **POST Request** with Multi-Part Form Data body type
+2. Add file field with file data
+3. Include additional form fields as needed
+
+### Webhook Receiver
+
+1. Use with Webhook trigger to receive data
+2. **POST Request** to forward data to another service
+
+## Tips
+
+- Credentials are optional - use for APIs requiring authentication
+- Query parameters are automatically URL-encoded
+- Headers can override default Content-Type headers
+- Use expressions in any field for dynamic values
+- Test with simple GET requests before complex POST requests
+- Check API documentation for required headers and body format

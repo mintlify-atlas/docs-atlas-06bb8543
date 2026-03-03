@@ -1,80 +1,333 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: "Quick Start"
+description: "Get Flowbaker Executor up and running in minutes and execute your first workflow"
 ---
 
-## Get started in three steps
+## Overview
 
-Get your documentation site running locally and make your first customization.
+This guide will help you set up Flowbaker Executor, connect it to a workspace, and run your first workflow. The entire process takes less than 5 minutes.
 
-### Step 1: Set up your local environment
+<Steps>
+  <Step title="Install Flowbaker">
+    If you haven't already, install Flowbaker using one of the methods:
+
+    <Tabs>
+      <Tab title="Download Binary">
+        Download from [GitHub releases](https://github.com/flowbaker/flowbaker/releases) and make it executable:
+        ```bash
+        chmod +x flowbaker
+        sudo mv flowbaker /usr/local/bin/
+        ```
+      </Tab>
+      <Tab title="Build from Source">
+        ```bash
+        git clone https://github.com/flowbaker/flowbaker.git
+        cd flowbaker
+        go build -o flowbaker cmd/main.go
+        ```
+      </Tab>
+    </Tabs>
+
+    <Card title="Need help installing?" icon="book" href="/installation">
+      See the full installation guide for detailed instructions
+    </Card>
+  </Step>
+
+  <Step title="Start the Executor">
+    Run the `start` command to launch the executor. On first run, it will automatically guide you through the setup process:
+
+    ```bash
+    flowbaker start
+    ```
+
+    The executor will:
+    1. Generate cryptographic keys (Ed25519 for signing, X25519 for encryption)
+    2. Create a unique executor ID
+    3. Start an HTTP server on port `8081`
+    4. Display a registration passcode
+
+    <Note>
+      The executor must be running during the registration process. Keep this terminal window open.
+    </Note>
+  </Step>
+
+  <Step title="Register with Workspace">
+    The setup wizard will display a **registration passcode** like this:
+
+    ```
+    🔑 Registration passcode: ABC-123-XYZ
+    💡 Use this passcode when registering workspaces via the API
+    
+    ⏳ Waiting for workspace registration...
+    ```
+
+    To complete registration, you have two options:
+
+    <Tabs>
+      <Tab title="Flowbaker Platform">
+        1. Log in to your [Flowbaker workspace](https://flowbaker.com)
+        2. Navigate to **Settings > Executors**
+        3. Click **Add Executor**
+        4. Enter the registration passcode
+        5. Give your executor a name (e.g., "My Local Executor")
+        6. Click **Register**
+      </Tab>
+      <Tab title="API Registration">
+        Register programmatically using the Flowbaker API:
+
+        ```bash
+        curl -X POST https://api.flowbaker.com/executors/register \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Bearer YOUR_API_KEY" \
+          -d '{
+            "passcode": "ABC-123-XYZ",
+            "executor_name": "My Local Executor"
+          }'
+        ```
+      </Tab>
+    </Tabs>
+
+    Once registration is complete, you'll see:
+    ```
+    ✅ Executor registration verified!
+    ```
+  </Step>
+
+  <Step title="Verify Setup">
+    After registration, the executor will start and connect to your workspace. Verify everything is working:
+
+    <Tabs>
+      <Tab title="Check Status">
+        Open a new terminal and run:
+
+        ```bash
+        flowbaker status
+        ```
+
+        You should see output like:
+        ```
+        ✅ Executor is set up and ready
+           Executor ID: exec_abc123def456
+           Workspaces (1): My Workspace
+           API URL: https://api.flowbaker.com
+           Last connected: 2026-03-03 15:30:45
+        ```
+      </Tab>
+
+      <Tab title="List Workspaces">
+        View all assigned workspaces:
+
+        ```bash
+        flowbaker workspaces list
+        ```
+
+        Output:
+        ```
+        📋 Assigned Workspaces:
+           1. My Workspace (my-workspace)
+
+        Total: 1 workspace(s)
+        ```
+      </Tab>
+    </Tabs>
+
+    <Tip>
+      You can connect the same executor to multiple workspaces. Each workspace registration uses a new passcode.
+    </Tip>
+  </Step>
+
+  <Step title="Create Your First Workflow">
+    Now that your executor is running, create a workflow in the Flowbaker platform:
+
+    1. Log in to [Flowbaker](https://flowbaker.com)
+    2. Click **Create Workflow**
+    3. Add nodes to your workflow (e.g., Trigger → Action → Response)
+    4. Assign the workflow to your executor
+    5. Save and activate the workflow
+
+    <Card title="Learn about workflows" icon="diagram-project" href="/concepts/workflows">
+      Understand how workflows, nodes, and integrations work together
+    </Card>
+  </Step>
+
+  <Step title="Test the Workflow">
+    Trigger your workflow and watch it execute on your local executor:
+
+    1. Trigger the workflow from the Flowbaker platform
+    2. Watch the executor logs in your terminal
+    3. See real-time execution progress
+    4. View results in the platform dashboard
+
+    The executor logs will show:
+    ```
+    INFO Starting executor service
+    INFO Executor configuration loaded executor_id=exec_abc123def456
+    INFO Flowbaker client with signature-based auth ready
+    INFO Received workflow execution request workflow_id=wf_123
+    INFO Executing workflow...
+    INFO Workflow execution completed successfully
+    ```
+  </Step>
+</Steps>
+
+## What Just Happened?
+
+Let's break down what happened during setup:
 
 <AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+  <Accordion title="1. Key Generation" icon="key">
+    The executor generated two cryptographic key pairs:
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
+    - **Ed25519**: Used for signing API requests to authenticate with the platform
+    - **X25519**: Used for end-to-end encrypted communication
+    
+    These keys are stored locally in `~/.flowbaker/config.json` and never leave your machine.
   </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
+
+  <Accordion title="2. Executor Registration" icon="id-card">
+    The executor registered with the Flowbaker API and received a unique executor ID (format: `exec_*`). This ID identifies your executor across all workspaces.
+  </Accordion>
+
+  <Accordion title="3. Workspace Assignment" icon="building">
+    Using the registration passcode, you linked the executor to your workspace. The workspace can now send workflow executions to this executor.
+  </Accordion>
+
+  <Accordion title="4. HTTP Server" icon="server">
+    The executor started an HTTP server on port `8081` with these endpoints:
     
-    <Tip>Your preview updates automatically as you edit files.</Tip>
+    - `/health` - Health check endpoint
+    - `/workspaces` - Workspace registration endpoint
+    
+    This server receives workflow execution requests from the platform.
   </Accordion>
 </AccordionGroup>
 
-### Step 2: Deploy your changes
+## Common Commands
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+Here are the most common commands you'll use:
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+<CodeGroup>
+  ```bash Start Executor
+  # Start the executor (runs in foreground)
+  flowbaker start
+  ```
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+  ```bash Check Status
+  # View executor status and configuration
+  flowbaker status
+  ```
 
-### Step 3: Go live
+  ```bash List Workspaces
+  # Show all assigned workspaces
+  flowbaker workspaces list
+  ```
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+  ```bash Reset Configuration
+  # Reset and start fresh (removes all config)
+  flowbaker reset
+  ```
 
-## Next steps
+  ```bash Debug Mode
+  # Run with detailed debug logging
+  flowbaker start --debug
+  ```
+</CodeGroup>
 
-Now that you have your docs running, explore these key features:
+<Card title="Full Command Reference" icon="terminal" href="/commands/start">
+  Explore all available commands and their options
+</Card>
+
+## Running in Production
+
+For production deployments, consider:
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Docker Deployment" icon="docker" href="/self-hosting/docker">
+    Run Flowbaker in a containerized environment
+  </Card>
+  <Card title="Process Manager" icon="gears">
+    Use systemd, supervisord, or pm2 to manage the executor as a service
+  </Card>
+  <Card title="Security Best Practices" icon="shield" href="/self-hosting/security">
+    Secure your executor in production environments
+  </Card>
+  <Card title="Monitoring" icon="chart-line">
+    Set up monitoring and alerting for your executor
+  </Card>
 </CardGroup>
 
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Port 8081 already in use" icon="exclamation-triangle">
+    If port `8081` is already in use, you'll see an error. You can:
+    
+    1. Stop the process using port `8081`
+    2. Or wait for support for custom port configuration (coming soon)
+  </Accordion>
+
+  <Accordion title="Registration timeout" icon="clock">
+    If registration takes longer than 10 minutes, the process will timeout. This usually means:
+    
+    - The passcode wasn't entered in the platform
+    - Network connectivity issues
+    - Firewall blocking connections
+    
+    Simply restart with `flowbaker start` to get a new passcode.
+  </Accordion>
+
+  <Accordion title="Cannot connect to API" icon="wifi">
+    If the executor can't connect to the API:
+    
+    1. Check your internet connection
+    2. Verify the API URL in `~/.flowbaker/config.json`
+    3. Check firewall settings
+    4. Use `--debug` flag to see detailed connection logs
+  </Accordion>
+
+  <Accordion title="Workflows not executing" icon="circle-xmark">
+    If workflows aren't executing:
+    
+    1. Verify executor is running: `flowbaker status`
+    2. Check workflow is assigned to your executor in the platform
+    3. Ensure workflow is activated
+    4. Check executor logs for errors
+  </Accordion>
+</AccordionGroup>
+
+<Tip>
+  For more detailed troubleshooting, run the executor with debug logging:
+  ```bash
+  flowbaker start --debug
+  ```
+</Tip>
+
+## Next Steps
+
+Now that you have Flowbaker running, explore these topics:
+
+<CardGroup cols={2}>
+  <Card title="Core Concepts" icon="book" href="/concepts/workflows">
+    Learn about workflows, nodes, and executors
+  </Card>
+  <Card title="Integrations" icon="plug" href="/integrations/overview">
+    Discover 50+ available integrations
+  </Card>
+  <Card title="Configuration" icon="gear" href="/configuration/setup">
+    Advanced configuration and customization
+  </Card>
+  <Card title="Self-Hosting" icon="server" href="/self-hosting/deployment">
+    Deploy Flowbaker in production
+  </Card>
+</CardGroup>
+
+## Get Help
+
+<CardGroup cols={2}>
+  <Card title="Discord Community" icon="discord" href="https://discord.gg/wDxHFkcbhD">
+    Join our Discord server for help and discussions
+  </Card>
+  <Card title="GitHub Issues" icon="github" href="https://github.com/flowbaker/flowbaker/issues">
+    Report bugs or request features
+  </Card>
+</CardGroup>

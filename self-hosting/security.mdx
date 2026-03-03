@@ -1,0 +1,618 @@
+---
+title: "Security Best Practices"
+description: "Secure your Flowbaker executor deployment with authentication and encryption"
+---
+
+Security is critical when self-hosting the Flowbaker executor. This guide covers authentication, encryption, and best practices for securing your deployment.
+
+## Security Architecture
+
+The Flowbaker executor uses multiple layers of security:
+
+1. **Cryptographic Keys**: X25519 for encryption, Ed25519 for signatures
+2. **API Signature Verification**: Request authentication using public key cryptography
+3. **Workspace Isolation**: Per-workspace API keys and authentication
+4. **HTTPS Communication**: Encrypted communication with the Flowbaker API
+
+## Cryptographic Keys
+
+### Key Types
+
+The executor uses two types of cryptographic keys:
+
+#### X25519 Keys (Encryption)
+
+- Used for end-to-end encryption of sensitive data
+- Based on Curve25519 elliptic curve cryptography
+- Public key shared with the Flowbaker API
+- Private key never leaves the executor
+
+#### Ed25519 Keys (Signatures)
+
+- Used for signing API requests to prove authenticity
+- Based on Edwards-curve Digital Signature Algorithm
+- Public key registered with the Flowbaker API
+- Private key used to sign all outbound requests
+
+### Key Generation
+
+Keys are automatically generated during first-time setup:
+
+<Steps>
+  <Step title="Run initial setup">
+    ```bash
+    ./flowbaker start
+    ```
+  </Step>
+
+  <Step title="Keys are generated">
+    The executor automatically generates:
+    - X25519 key pair (encryption)
+    - Ed25519 key pair (signatures)
+  </Step>
+
+  <Step title="Keys are stored securely">
+    Keys are saved to `~/.flowbaker/config.json` with restrictive permissions (0600).
+  </Step>
+
+  <Step title="Public keys are registered">
+    Public keys are sent to the Flowbaker API during registration.
+  </Step>
+</Steps>
+
+### Key Storage
+
+Keys are stored in the configuration file:
+
+```json
+{
+  "executor_id": "exec_...",
+  "x25519_private_key": "...",
+  "x25519_public_key": "...",
+  "ed25519_private_key": "...",
+  "ed25519_public_key": "..."
+}
+```
+
+<Warning>
+**Never expose private keys!** The configuration file contains sensitive cryptographic material. Treat it like a password.
+</Warning>
+
+### Key Rotation
+
+To rotate keys:
+
+<Steps>
+  <Step title="Reset configuration">
+    ```bash
+    ./flowbaker reset
+    ```
+  </Step>
+
+  <Step title="Run setup again">
+    ```bash
+    ./flowbaker start
+    ```
+    New keys will be generated automatically.
+  </Step>
+
+  <Step title="Update workspace assignments">
+    Re-register with workspaces using the new public keys.
+  </Step>
+</Steps>
+
+## API Signature Verification
+
+The executor supports two modes of API signature verification:
+
+### Dynamic Workspace Keys (Default)
+
+In this mode, each workspace has its own API signature public key:
+
+```go
+// From internal/server/server.go:62-66
+if deps.KeyProvider != nil {
+    specificWorkspace.Use(middlewares.WorkspaceAwareAPISignatureMiddleware(deps.KeyProvider))
+} else {
+    log.Fatal().Msg("No signature verification method available")
+}
+```
+
+**How it works:**
+
+1. Workspaces register with the executor via `/workspaces` endpoint
+2. Each workspace provides its API signature public key
+3. Keys are stored in `workspace_assignments` in the configuration
+4. Incoming requests are verified against the workspace's public key
+
+**Configuration:**
+
+```json
+{
+  "workspace_assignments": [
+    {
+      "workspace_id": "ws_...",
+      "api_signature_public_key": "..."
+    }
+  ]
+}
+```
+
+### Static API Signature Key
+
+For simplified deployments, use a single static public key:
+
+```bash
+export STATIC_API_SIGNATURE_PUBLIC_KEY="your-base64-encoded-public-key"
+./flowbaker start
+```
+
+**How it works:**
+
+```go
+// From internal/server/server.go:53-61
+staticAPIPublicKey := os.Getenv("STATIC_API_SIGNATURE_PUBLIC_KEY")
+
+if staticAPIPublicKey != "" {
+    verifier, err := auth.NewAPISignatureVerifier(staticAPIPublicKey)
+    if err != nil {
+        log.Fatal().Err(err).Msg("Failed to create API signature verifier")
+    }
+    specificWorkspace.Use(middlewares.APISignatureMiddleware(verifier))
+}
+```
+
+1. Set `STATIC_API_SIGNATURE_PUBLIC_KEY` environment variable
+2. All requests are verified against this single key
+3. Bypasses per-workspace key management
+
+<Note>
+Static keys are simpler but less flexible. Use workspace keys for multi-tenant environments.
+</Note>
+
+## Authentication Modes
+
+### Workspace Registration Mode
+
+Allow workspaces to self-register:
+
+```bash
+FLOWBAKER_ENABLE_WORKSPACE_REGISTRATION=true
+```
+
+**Enabled endpoints:**
+- `POST /workspaces` - Register a new workspace
+- `DELETE /workspaces/:workspaceID` - Unregister a workspace
+
+```go
+// From internal/server/server.go:45-49
+if deps.Config.EnableWorkspaceRegistration {
+    workspaces := router.Group("/workspaces")
+    workspaces.Post("/", deps.ExecutorController.RegisterWorkspace)
+}
+```
+
+**Security considerations:**
+- Any workspace can register if they know the executor URL
+- Consider using a static passcode for additional security
+- Disable in production if using pre-configured workspace assignments
+
+### Static Passcode Mode
+
+Require a passcode for workspace registration:
+
+```bash
+FLOWBAKER_ENABLE_STATIC_PASSCODE=true
+FLOWBAKER_STATIC_PASSCODE="your-secure-passcode"
+```
+
+**How it works:**
+1. Workspaces must provide the passcode when registering
+2. Registration fails if the passcode doesn't match
+3. Prevents unauthorized workspace registration
+
+### Pre-configured Workspace Assignments
+
+For maximum security, pre-configure workspace assignments:
+
+```bash
+FLOWBAKER_SKIP_WORKSPACE_ASSIGNMENTS=false
+FLOWBAKER_ENABLE_WORKSPACE_REGISTRATION=false
+```
+
+Manually add workspaces to `config.json`:
+
+```json
+{
+  "workspace_assignments": [
+    {
+      "workspace_id": "ws_abc123",
+      "api_signature_public_key": "base64-encoded-key"
+    },
+    {
+      "workspace_id": "ws_xyz789",
+      "api_signature_public_key": "base64-encoded-key"
+    }
+  ],
+  "enable_workspace_registration": false
+}
+```
+
+## Endpoints and Access Control
+
+### Public Endpoints (No Authentication)
+
+#### Health Check
+
+```bash
+GET /health
+```
+
+Returns service status without authentication:
+
+```go
+// From internal/server/server.go:36-43
+router.Get("/health", func(c fiber.Ctx) error {
+    return c.Status(fiber.StatusOK).JSON(fiber.Map{
+        "status":    "healthy",
+        "service":   "flowbaker-executor",
+        "version":   version.GetVersion(),
+        "timestamp": time.Now().UTC().Format(time.RFC3339),
+    })
+})
+```
+
+**Use cases:**
+- Container health checks
+- Load balancer probes
+- Monitoring systems
+
+<Warning>
+The health endpoint is public by design. Don't expose sensitive information.
+</Warning>
+
+### Protected Endpoints (Signature Verification Required)
+
+All workspace-specific endpoints require API signature verification:
+
+```bash
+# Execution Management
+POST   /workspaces/:workspaceID/executions
+DELETE /workspaces/:workspaceID/executions/:executionID
+POST   /workspaces/:workspaceID/executions/:executionID/nodes/:nodeID
+POST   /workspaces/:workspaceID/executions/:executionID/nodes/:nodeID/run
+
+# Workflow Operations
+POST   /workspaces/:workspaceID/polling-events
+POST   /workspaces/:workspaceID/connection-test
+POST   /workspaces/:workspaceID/peek-data
+
+# Workspace Management
+DELETE /workspaces/:workspaceID
+```
+
+From `internal/server/server.go:68-75`:
+
+```go
+specificWorkspace.Post("/executions", deps.ExecutorController.StartExecution)
+specificWorkspace.Delete("/executions/:executionID", deps.ExecutorController.StopExecution)
+specificWorkspace.Post("/executions/:executionID/nodes/:nodeID", deps.ExecutorController.RerunNode)
+specificWorkspace.Post("/executions/:executionID/nodes/:nodeID/run", deps.ExecutorController.RunNode)
+specificWorkspace.Post("/polling-events", deps.ExecutorController.HandlePollingEvent)
+specificWorkspace.Post("/connection-test", deps.ExecutorController.TestConnection)
+specificWorkspace.Post("/peek-data", deps.ExecutorController.PeekData)
+specificWorkspace.Delete("/", deps.ExecutorController.UnregisterWorkspace)
+```
+
+## Network Security
+
+### Port Configuration
+
+The executor listens on port **8081** by default:
+
+```go
+// From cmd/cli/start.go:121-124
+if err := server.Listen(":8081", fiber.ListenConfig{
+    GracefulContext:       ctx,
+    DisableStartupMessage: true,
+}); err != nil
+```
+
+### Firewall Rules
+
+Configure firewall to allow:
+
+**Inbound:**
+- Port 8081 (or your custom port) for API requests from Flowbaker
+
+**Outbound:**
+- HTTPS (443) to `api.flowbaker.io`
+- Any ports required by your workflows (databases, APIs, etc.)
+
+### Reverse Proxy Setup
+
+Use a reverse proxy (nginx, Caddy, Traefik) for:
+- TLS termination
+- Rate limiting
+- IP whitelisting
+- DDoS protection
+
+**Example nginx configuration:**
+
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name executor.example.com;
+
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+
+    # Rate limiting
+    limit_req_zone $binary_remote_addr zone=executor:10m rate=10r/s;
+    limit_req zone=executor burst=20;
+
+    location / {
+        proxy_pass http://localhost:8081;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Health check endpoint (no rate limit)
+    location /health {
+        proxy_pass http://localhost:8081/health;
+    }
+}
+```
+
+## Docker Security
+
+### Non-Root User
+
+The Dockerfile runs as a non-root user:
+
+```dockerfile
+# From Dockerfile:39-53
+RUN mkdir /app && \
+    addgroup -g 1001 flowbaker && \
+    adduser -D -u 1001 -G flowbaker flowbaker
+
+WORKDIR /app
+
+COPY --from=builder /app/flowbaker .
+
+RUN chown -R flowbaker:flowbaker /app
+
+USER flowbaker
+```
+
+### Read-Only Filesystem
+
+Run with a read-only filesystem:
+
+```bash
+docker run -d \
+  --read-only \
+  --tmpfs /tmp \
+  -v flowbaker-config:/home/flowbaker/.flowbaker \
+  flowbaker-executor
+```
+
+### Security Options
+
+```bash
+docker run -d \
+  --security-opt no-new-privileges \
+  --cap-drop ALL \
+  flowbaker-executor
+```
+
+### Secrets Management
+
+Use Docker secrets for sensitive data:
+
+```yaml
+version: '3.8'
+
+services:
+  executor:
+    image: flowbaker-executor
+    secrets:
+      - ed25519_private_key
+      - x25519_private_key
+    environment:
+      - FLOWBAKER_ED25519_PRIVATE_KEY_FILE=/run/secrets/ed25519_private_key
+      - FLOWBAKER_X25519_PRIVATE_KEY_FILE=/run/secrets/x25519_private_key
+
+secrets:
+  ed25519_private_key:
+    file: ./secrets/ed25519_private_key.txt
+  x25519_private_key:
+    file: ./secrets/x25519_private_key.txt
+```
+
+## Configuration Security
+
+### File Permissions
+
+Ensure configuration has restrictive permissions:
+
+```bash
+chmod 600 ~/.flowbaker/config.json
+chown flowbaker:flowbaker ~/.flowbaker/config.json
+```
+
+### Environment Variables vs Config File
+
+**Environment variables:**
+- ✅ Better for Docker/containerized deployments
+- ✅ Easier secrets management
+- ✅ No files to secure
+- ❌ Visible in process listings
+
+**Configuration file:**
+- ✅ Not visible in process listings
+- ✅ Can use file system permissions
+- ❌ Requires secure file management
+- ❌ More complex in containerized environments
+
+### Backup Security
+
+When backing up configuration:
+
+```bash
+# Encrypt backups
+tar czf - ~/.flowbaker | gpg -c > flowbaker-backup.tar.gz.gpg
+
+# Restore
+gpg -d flowbaker-backup.tar.gz.gpg | tar xzf - -C ~/
+```
+
+## Production Hardening Checklist
+
+<Steps>
+  <Step title="Disable workspace registration">
+    ```bash
+    FLOWBAKER_ENABLE_WORKSPACE_REGISTRATION=false
+    ```
+  </Step>
+
+  <Step title="Use pre-configured workspace assignments">
+    Manually configure workspace API keys in `config.json`.
+  </Step>
+
+  <Step title="Enable static API signature verification">
+    ```bash
+    STATIC_API_SIGNATURE_PUBLIC_KEY="your-key"
+    ```
+  </Step>
+
+  <Step title="Run behind a reverse proxy">
+    Use nginx/Caddy for TLS termination and rate limiting.
+  </Step>
+
+  <Step title="Restrict network access">
+    Configure firewall rules to limit inbound/outbound traffic.
+  </Step>
+
+  <Step title="Use non-root user">
+    Ensure the executor runs as a non-root user (default in Docker).
+  </Step>
+
+  <Step title="Enable read-only filesystem">
+    Run Docker container with `--read-only` flag.
+  </Step>
+
+  <Step title="Implement monitoring">
+    Monitor the `/health` endpoint and set up alerts.
+  </Step>
+
+  <Step title="Regular key rotation">
+    Establish a schedule for rotating cryptographic keys.
+  </Step>
+
+  <Step title="Secure configuration backups">
+    Encrypt configuration backups and store securely.
+  </Step>
+</Steps>
+
+## Monitoring and Auditing
+
+### Logging
+
+The executor logs to stdout/stderr. Collect logs for security auditing:
+
+```bash
+# Docker
+docker logs flowbaker-executor > executor.log
+
+# systemd
+journalctl -u flowbaker-executor -f
+```
+
+### Security Events to Monitor
+
+- Failed authentication attempts
+- Workspace registration events
+- Executor startup/shutdown
+- Configuration changes
+- API connection failures
+
+### Alerting
+
+Set up alerts for:
+
+- Executor downtime (health check failures)
+- Repeated authentication failures
+- Unexpected workspace registrations
+- Configuration file modifications
+
+## Security Incident Response
+
+### If Keys Are Compromised
+
+<Steps>
+  <Step title="Immediately stop the executor">
+    ```bash
+    docker stop flowbaker-executor
+    ```
+  </Step>
+
+  <Step title="Reset configuration">
+    ```bash
+    ./flowbaker reset
+    ```
+  </Step>
+
+  <Step title="Generate new keys">
+    ```bash
+    ./flowbaker start
+    ```
+    New keys will be generated automatically.
+  </Step>
+
+  <Step title="Update workspace assignments">
+    Re-register with all workspaces using new public keys.
+  </Step>
+
+  <Step title="Audit logs">
+    Review logs for unauthorized access or suspicious activity.
+  </Step>
+</Steps>
+
+### If Unauthorized Access Detected
+
+<Steps>
+  <Step title="Disable workspace registration">
+    ```bash
+    FLOWBAKER_ENABLE_WORKSPACE_REGISTRATION=false
+    ```
+  </Step>
+
+  <Step title="Review workspace assignments">
+    Remove unauthorized workspaces from `config.json`.
+  </Step>
+
+  <Step title="Rotate API keys">
+    Follow key rotation procedures.
+  </Step>
+
+  <Step title="Enable static passcode">
+    ```bash
+    FLOWBAKER_ENABLE_STATIC_PASSCODE=true
+    FLOWBAKER_STATIC_PASSCODE="new-secure-passcode"
+    ```
+  </Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Deployment Guide" icon="rocket" href="/self-hosting/deployment">
+    Learn deployment strategies
+  </Card>
+  <Card title="Docker Deployment" icon="docker" href="/self-hosting/docker">
+    Deploy with Docker
+  </Card>
+</CardGroup>

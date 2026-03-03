@@ -1,0 +1,223 @@
+---
+title: 'Pipedrive'
+description: 'Manage your sales pipeline with Pipedrive CRM - create and update deals, activities, and persons.'
+---
+
+## Overview
+
+The Pipedrive integration allows you to manage your sales pipeline by creating, updating, and retrieving deals, activities, persons, and other CRM data.
+
+## Configuration
+
+To set up the Pipedrive integration, you need to provide:
+
+| Field | Description | Required |
+|-------|-------------|----------|
+| **API Token** | Your Pipedrive API token | Yes |
+| **HTTP Auth Username** | Username to secure webhook endpoints | No* |
+| **HTTP Auth Password** | Password to secure webhook endpoints | No* |
+
+*Required when using webhook triggers for security protection.
+
+### Getting Your API Token
+
+1. Log in to your Pipedrive account
+2. Go to Settings > Personal Preferences > API
+3. Copy your personal API token
+
+## Available Actions
+
+### Activity Management
+
+#### Create Activity
+
+Create a new activity in Pipedrive.
+
+**Parameters:**
+- **Subject**: The subject of the activity
+- **Type**: The type of activity
+- **Owner ID**: The ID of the user who owns the activity
+- **Deal ID**: Associated deal
+- **Organization ID**: Associated organization
+- **Project ID**: Associated project
+- **Participant ID**: Participant of the activity
+- **Lead ID**: Associated lead
+- **Due Date**: Due date (YYYY-MM-DD)
+- **Due Time**: Due time (HH:MM)
+- **Duration**: Duration (HH:MM)
+- **Busy**: Whether the activity marks assignee as busy
+- **Done**: Whether the activity is done
+- **Public Description**: Public description
+- **Note**: Note about the activity
+
+#### Update Activity
+
+Update an existing activity.
+
+#### Get Activity
+
+Get details of a specific activity.
+
+#### Delete Activity
+
+Delete an activity.
+
+#### List Activities
+
+Get a list of all activities with optional filters.
+
+**Filter Parameters:**
+- **Owner ID**: Filter by owner
+- **Deal ID**: Filter by deal
+- **Person ID**: Filter by person
+- **Organization ID**: Filter by organization
+- **Done**: Filter by completion status
+- **Updated Since**: Filter by update time (RFC3339 format)
+- **Updated Until**: Filter by update time
+- **Sort By**: Field to sort by (id, update_time, add_time, due_date)
+- **Sort Direction**: asc or desc
+
+### Deal Management
+
+#### Create Deal
+
+Create a new deal in Pipedrive.
+
+**Parameters:**
+- **Title**: The title of the deal (required)
+- **Value**: The monetary value
+- **Currency**: The currency (USD, EUR, etc.)
+- **Owner**: The ID of the user who owns the deal
+- **Person**: Associated person
+- **Organization**: Associated organization
+- **Pipeline**: The pipeline this deal belongs to
+- **Stage**: The stage of the pipeline
+- **Status**: Deal status (open, won, lost, deleted)
+
+**Example:**
+```json
+{
+  "title": "New Enterprise Deal",
+  "value": 50000,
+  "currency": "USD",
+  "status": "open"
+}
+```
+
+#### Update Deal
+
+Update an existing deal.
+
+#### Get Deal
+
+Get details of a specific deal.
+
+#### Delete Deal
+
+Delete a deal.
+
+#### List Deals
+
+Get a list of all deals with optional filters.
+
+**Filter Parameters:**
+- **Owner ID**: Filter by owner
+- **Person ID**: Filter by person
+- **Organization ID**: Filter by organization
+- **Pipeline ID**: Filter by pipeline
+- **Stage ID**: Filter by stage
+- **Status**: Filter by status
+- **Updated Since**: Filter by update time
+- **Updated Until**: Filter by update time
+
+### Person Management
+
+#### Create Person
+
+Create a new person in Pipedrive.
+
+**Parameters:**
+- **Name**: The name of the person (required)
+- **Emails**: Email address(es)
+- **Phones**: Phone number(s)
+- **Organization ID**: Associated organization
+- **Visible To**: Visibility setting
+- **Owner ID**: The user who owns the person
+
+**Example:**
+```json
+{
+  "name": "John Doe",
+  "emails": ["john@example.com"],
+  "phones": ["+1234567890"]
+}
+```
+
+#### Update Person
+
+Update an existing person.
+
+#### Get Person
+
+Get details of a specific person.
+
+#### Delete Person
+
+Delete a person.
+
+#### List Persons
+
+Get a list of all persons with optional filters.
+
+## Available Triggers
+
+### Pipedrive Event
+
+Trigger when any Pipedrive event occurs.
+
+**Configuration:**
+- **Webhook URL**: The webhook endpoint for Pipedrive events
+- **Pipedrive Actions**: Select which actions trigger the workflow
+  - Create
+  - Update
+  - Delete
+- **Pipedrive Objects**: Select which objects trigger the workflow
+  - Activities
+  - Deals
+  - Persons
+  - Organizations
+  - Projects
+  - Leads
+  - Labels
+  - Notes
+  - Products
+  - Stages
+  - Users
+  - Pipelines
+  - Fields
+  - Filters
+
+## Example Workflows
+
+### New Deal Notification
+
+1. **Trigger**: Pipedrive Event (Deal + Create)
+2. **Action**: Send notification when new deal is created
+
+### Update Deal Stage
+
+1. **Action**: Get Deal to check current status
+2. **Action**: Update Deal to move to next stage
+
+### Create Activity for New Deal
+
+1. **Trigger**: Pipedrive Event (Deal + Create)
+2. **Action**: Create Activity for follow-up
+
+## Tips
+
+- Use filters in List actions to retrieve specific subsets of data
+- IDs can be obtained from peek dropdowns or previous action outputs
+- The integration supports pagination using cursor parameter
+- Updated Since/Until filters use RFC3339 format: `2025-01-01T10:20:00Z`
+- HTTP authentication is required for webhook security

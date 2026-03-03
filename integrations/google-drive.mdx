@@ -1,0 +1,196 @@
+---
+title: Google Drive Integration
+description: Manage files, folders, and Shared Drives in Google Drive with Flowbaker's integration.
+---
+
+The Google Drive integration enables you to automate file storage, sharing, and organization in Google Drive.
+
+## Authentication
+
+Connect your Google account using OAuth 2.0:
+
+- **Token**: Google Account authentication with Drive API access
+
+## Available Actions
+
+### File Management
+
+#### Upload File
+Upload a file to Google Drive root folder.
+
+**Parameters:**
+- `file_name` (optional): Desired file name (uses original if not provided)
+- `file` (required): File to upload
+
+#### Upload File to Folder
+Upload a file to a specific folder.
+
+**Parameters:**
+- `file_name` (required): Desired file name
+- `file` (required): File to upload
+- `folder_id` (required): Destination folder ID
+
+#### Download File
+Download a file by ID.
+
+**Parameters:**
+- `file_id` (required): File ID to download
+
+#### Copy File
+Copy a file to a new location.
+
+**Parameters:**
+- `file_id` (required): Source file ID
+- `new_file_name` (required): Name for copied file
+- `destination_folder_id` (optional): Destination folder
+
+#### Move File
+Move a file to a different folder.
+
+**Parameters:**
+- `file_id` (required): File ID to move
+- `destination_folder_id` (required): Destination folder ID
+
+#### Delete File
+Permanently delete a file.
+
+**Parameters:**
+- `file_id` (required): File ID to delete
+
+#### Update File
+Update file metadata.
+
+**Parameters:**
+- `file_id` (required): File ID to update
+- `new_file_name` (optional): New file name
+
+#### Create File From Text
+Create a new file with text content.
+
+**Parameters:**
+- `file_name` (required): Name for new file
+- `content` (required): Text content
+- `mime_type` (optional): MIME type (default: 'text/plain')
+- `folder_id` (optional): Parent folder ID
+
+### File Sharing
+
+#### Share File
+Share a file with specified permissions.
+
+**Parameters:**
+- `file_id` (required): File ID to share
+- `role` (required): Permission role ('reader', 'commenter', 'writer')
+- `type` (required): Grantee type ('user', 'group', 'domain', 'anyone')
+- `email_address` (optional): Email for 'user' or 'group'
+- `domain` (optional): Domain for 'domain' type
+- `allow_file_discovery` (optional): Allow search engine discovery
+
+### Folder Management
+
+#### Create Folder
+Create a new folder.
+
+**Parameters:**
+- `folder_name` (required): Name for new folder
+- `parent_folder_id` (optional): Parent folder (creates in root if empty)
+
+#### Delete Folder
+Permanently delete a folder.
+
+**Parameters:**
+- `folder_id` (required): Folder ID to delete
+
+#### Share Folder
+Share a folder with specified permissions.
+
+**Parameters:**
+- `folder_id` (required): Folder ID to share
+- `role` (required): Permission role ('reader', 'commenter', 'writer', 'organizer')
+- `type` (required): Grantee type ('user', 'group', 'domain', 'anyone')
+- `email_address` (optional): Email for 'user' or 'group'
+- `domain` (optional): Domain for 'domain' type
+- `allow_file_discovery` (optional): Allow search engine discovery
+
+### Search
+
+#### Search Files and Folders
+Search by name.
+
+**Parameters:**
+- `name_contains` (required): Search text
+- `page_size` (required): Results per page
+- `page_token` (optional): Pagination token
+
+### Shared Drives (Requires Custom OAuth)
+
+#### Create Shared Drive
+Create a new Shared Drive.
+
+**Parameters:**
+- `request_id` (required): Unique request ID (UUID)
+- `name` (required): Shared Drive name
+
+#### Get Shared Drive
+Retrieve Shared Drive information.
+
+**Parameters:**
+- `shared_drive_id` (required): Shared Drive ID
+
+#### List Shared Drives
+List accessible Shared Drives.
+
+**Parameters:**
+- `page_size` (optional): Maximum results
+- `page_token` (optional): Pagination token
+
+#### Update Shared Drive
+Update Shared Drive metadata.
+
+**Parameters:**
+- `shared_drive_id` (required): Shared Drive ID
+- `name` (optional): New name
+- `theme_id` (optional): New theme ID
+
+#### Delete Shared Drive
+Delete a Shared Drive (must be empty).
+
+**Parameters:**
+- `shared_drive_id` (required): Shared Drive ID
+
+## Configuration Example
+
+```json
+{
+  "file_name": "report.pdf",
+  "file": "{{file_data}}",
+  "folder_id": "1234567890abcdef"
+}
+```
+
+## Permission Roles
+
+- **reader**: Can view and download
+- **commenter**: Can view, download, and comment
+- **writer**: Can view, download, comment, and edit
+- **organizer**: Full management permissions (folders only)
+- **fileOrganizer**: Can organize files within folder
+
+## Best Practices
+
+1. Use file and folder IDs instead of names for reliability
+2. Implement error handling for permission denied scenarios
+3. Use batch operations when working with multiple files
+4. Set appropriate MIME types when creating files
+5. Use Shared Drives for team collaboration
+6. Regularly clean up unused files and folders
+7. Monitor API quota usage
+8. Use service accounts for server-to-server operations
+
+## Common Use Cases
+
+- **Document Generation**: Create and upload reports automatically
+- **File Backup**: Backup files to Google Drive
+- **Collaborative Workflows**: Share files with team members
+- **Data Export**: Export data as spreadsheets or documents
+- **Archive Management**: Organize files into folders automatically

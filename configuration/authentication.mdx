@@ -1,0 +1,264 @@
+---
+title: "Authentication"
+description: "Understand API signatures and cryptographic keys in Flowbaker"
+---
+
+## Overview
+
+Flowbaker uses **Ed25519 digital signatures** to authenticate API requests between your executor and the Flowbaker platform. This ensures secure, cryptographically verified communication.
+
+## Cryptographic Keys
+
+During setup, Flowbaker automatically generates two types of key pairs:
+
+### Ed25519 Keys (Signing)
+
+Used for **API request signatures** and authentication.
+
+- **Private Key**: Kept secret on your executor, used to sign requests
+- **Public Key**: Shared with Flowbaker API to verify signatures
+
+**Key Size**: 64 bytes (private), 32 bytes (public)
+
+**Encoding**: Base64 Standard Encoding
+
+### X25519 Keys (Encryption)
+
+Used for **end-to-end encryption** of sensitive data like credentials.
+
+- **Private Key**: Kept secret on your executor, used to decrypt data
+- **Public Key**: Shared with Flowbaker API to encrypt data for you
+
+**Key Size**: 32 bytes (private and public)
+
+**Encoding**: Base64 Standard Encoding
+
+<Note>
+  Keys are automatically generated during setup and stored securely in `~/.flowbaker/config.json`. You never need to manually create or manage these keys.
+</Note>
+
+## API Request Signing
+
+Every request from your executor to the Flowbaker API is signed using your Ed25519 private key.
+
+### Signature Algorithm
+
+The signing process (from `internal/auth/api_signature.go:34`):
+
+1. **Create Canonical Request**:
+   ```
+   {HTTP_METHOD}\n{REQUEST_PATH}\n\n{TIMESTAMP}\n{BODY_HASH}
+   ```
+
+2. **Compute Body Hash**:
+   ```
+   SHA-256(request_body) → sha256:HEXDIGEST
+   ```
+
+3. **Sign Canonical Request**:
+   ```
+   Ed25519.Sign(private_key, canonical_request) → signature_bytes
+   ```
+
+4. **Encode Signature**:
+   ```
+   Base64.Encode(signature_bytes)
+   ```
+
+### Request Headers
+
+Signed requests include these headers:
+
+```http
+X-API-Signature: ed25519=BASE64_SIGNATURE
+X-API-Timestamp: UNIX_TIMESTAMP
+```
+
+#### X-API-Signature
+
+Format: `ed25519=<base64-encoded-signature>`
+
+Contains the Ed25519 signature of the canonical request.
+
+#### X-API-Timestamp
+
+Format: Unix timestamp (seconds since epoch)
+
+The time when the request was created. Used to prevent replay attacks.
+
+<Warning>
+  **Timestamp Window**: Signatures are only valid within a 5-minute window (±300 seconds from current time). This prevents replay attacks using old signatures.
+</Warning>
+
+## Signature Verification
+
+The Flowbaker API verifies incoming requests from executors using the registered public key.
+
+### Verification Process
+
+1. **Extract Headers**: Parse `X-API-Signature` and `X-API-Timestamp`
+2. **Validate Timestamp**: Ensure timestamp is within ±5 minutes
+3. **Reconstruct Canonical Request**: Using method, path, timestamp, and body hash
+4. **Verify Signature**: Use Ed25519 public key to verify signature
+
+### Verification Errors
+
+Common signature verification failures:
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| Invalid signature format | Malformed signature header | Ensure proper `ed25519=` prefix |
+| Timestamp outside window | Clock skew or replay attack | Sync system clock with NTP |
+| Signature verification failed | Wrong key or tampered request | Check executor registration |
+
+## Client Configuration
+
+The executor client automatically handles signature generation. From `pkg/clients/flowbaker-executor/config.go:17`:
+
+```go
+type ClientConfig struct {
+    BaseURL    string
+    SigningKey string // Base64 encoded Ed25519 private key
+    // ... other fields
+}
+```
+
+### Automatic Signing
+
+When you create a Flowbaker client with your signing key:
+
+```go
+flowbakerClient := flowbaker.NewClient(
+    flowbaker.WithBaseURL(config.APIBaseURL),
+    flowbaker.WithExecutorID(config.ExecutorID),
+    flowbaker.WithEd25519PrivateKey(config.Ed25519PrivateKey),
+)
+```
+
+All requests are automatically signed using your Ed25519 private key.
+
+## Workspace API Keys
+
+In addition to executor-level authentication, each workspace connection has its own **API public key** for additional verification.
+
+### Workspace Assignments
+
+From `pkg/domain/config_manager.go:32`:
+
+```go
+type WorkspaceAssignment struct {
+    WorkspaceID   string
+    WorkspaceName string
+    WorkspaceSlug string
+    APIPublicKey  string  // Ed25519 public key for workspace
+}
+```
+
+The workspace's public key is used to verify requests coming **from** the Flowbaker API **to** your executor.
+
+### Incoming Request Verification
+
+Your executor verifies incoming webhook/execution requests from Flowbaker using the workspace's public key. This ensures:
+
+1. Requests are from legitimate Flowbaker workspaces
+2. Request payloads haven't been tampered with
+3. Protection against unauthorized workflow execution
+
+<Note>
+  Workspace API keys are automatically managed during workspace registration and stored in your executor configuration.
+</Note>
+
+## Static API Signature Public Key
+
+For advanced deployments, you can configure a static API signature public key:
+
+```bash
+export STATIC_API_SIGNATURE_PUBLIC_KEY="base64-encoded-ed25519-public-key"
+```
+
+This bypasses workspace-specific signature verification and uses a single trusted public key.
+
+<Warning>
+  **Production Use**: Only use static keys in controlled environments. Dynamic workspace keys provide better security isolation.
+</Warning>
+
+## Key Rotation
+
+Currently, Flowbaker does not support automatic key rotation. If you need to rotate keys:
+
+1. Run `flowbaker reset` to clear configuration
+2. Run `flowbaker start` to generate new keys and re-register
+3. Reconnect to your workspaces
+
+<Note>
+  Your previous executor registration will remain on the platform but will be inactive.
+</Note>
+
+## Security Best Practices
+
+<Warning>
+  **Protect Your Private Keys**: Never commit private keys to version control, share them in logs, or transmit them over insecure channels.
+</Warning>
+
+### Configuration File Security
+
+- Configuration stored in `~/.flowbaker/config.json`
+- Directory permissions: `0700` (owner only)
+- Keep backups in secure, encrypted storage
+
+### Environment Variables
+
+If using environment variables for keys:
+
+```bash
+# Use secure secret management
+export FLOWBAKER_ED25519_PRIVATE_KEY="$(cat /secure/path/ed25519.key)"
+export FLOWBAKER_X25519_PRIVATE_KEY="$(cat /secure/path/x25519.key)"
+```
+
+### Network Security
+
+- Use HTTPS for executor addresses in production
+- Configure firewall rules to restrict access to port 8081
+- Use VPN or private networks when possible
+
+## Troubleshooting
+
+### Signature Verification Failures
+
+If you see signature verification errors:
+
+1. **Check system clock**: Ensure NTP is synchronized
+   ```bash
+   timedatectl status
+   ```
+
+2. **Verify configuration**: Ensure keys haven't been corrupted
+   ```bash
+   flowbaker status
+   ```
+
+3. **Check logs**: Review executor logs for detailed error messages
+
+### Clock Skew
+
+If your system clock is significantly off:
+
+```bash
+# Sync with NTP
+sudo timedatectl set-ntp true
+
+# Or manually set time
+sudo timedatectl set-time "2026-03-03 12:00:00"
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Environment Variables" icon="terminal" href="/configuration/environment">
+    Complete reference of all configuration options
+  </Card>
+  <Card title="Self-Hosting Security" icon="shield" href="/self-hosting/security">
+    Advanced security configuration for self-hosted deployments
+  </Card>
+</CardGroup>

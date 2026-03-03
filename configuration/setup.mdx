@@ -1,0 +1,164 @@
+---
+title: "Initial Setup"
+description: "Configure your Flowbaker executor for the first time"
+---
+
+## Overview
+
+Flowbaker requires initial setup to register your executor with the Flowbaker platform and connect it to your workspaces. The setup process is interactive and guides you through all necessary steps.
+
+## First-Time Setup
+
+When you run `flowbaker start` for the first time, the interactive setup wizard will guide you through:
+
+1. **Executor Configuration**: Define your executor name and address
+2. **Key Generation**: Automatically generate cryptographic keys for secure communication
+3. **Registration**: Register your executor with the Flowbaker API
+4. **Workspace Connection**: Connect to your first workspace
+
+### Executor Name
+
+A friendly name to identify your executor. This can be customized or auto-generated.
+
+**Default behavior**: Generates a random executor name if not specified.
+
+**Environment variable**: `FLOWBAKER_EXECUTOR_NAME`
+
+```bash
+export FLOWBAKER_EXECUTOR_NAME="production-executor-1"
+```
+
+### Executor Address
+
+The full URL where your executor will be accessible. This must be reachable by the Flowbaker platform.
+
+**Format**: `http://YOUR_IP:8081` or `https://YOUR_DOMAIN:8081`
+
+**Default behavior**: Automatically detects your public IP address.
+
+**Environment variable**: `FLOWBAKER_EXECUTOR_ADDRESS`
+
+```bash
+export FLOWBAKER_EXECUTOR_ADDRESS="http://203.0.113.42:8081"
+```
+
+<Warning>
+  **VPN Detection**: If a VPN network interface is detected, you'll be warned that external services may not reach your executor. Ensure your executor address is publicly accessible or configure appropriate networking.
+</Warning>
+
+## Executor ID
+
+After successful registration, your executor receives a unique **Executor ID** from the Flowbaker platform. This ID is automatically saved to your configuration and used for all subsequent API requests.
+
+The Executor ID is stored in `~/.flowbaker/config.json` and can also be set via environment variable:
+
+```bash
+export FLOWBAKER_EXECUTOR_ID="exec_1a2b3c4d5e6f"
+```
+
+## Workspace Connection
+
+During setup, you'll receive a **verification code** and **registration passcode**:
+
+- **Verification Code**: Use this to connect your executor in the Flowbaker dashboard
+- **Registration Passcode**: Required when registering workspaces via API
+
+### Connection URL
+
+The setup wizard provides a direct URL:
+
+```
+https://app.flowbaker.io/executors/verify?code=YOUR_VERIFICATION_CODE
+```
+
+Open this URL in your browser and follow the workspace connection flow.
+
+<Note>
+  The setup process waits up to 10 minutes for workspace registration. You can cancel anytime with `Ctrl+C`.
+</Note>
+
+## Configuration File
+
+All configuration is saved to `~/.flowbaker/config.json` (platform-specific home directory).
+
+### Configuration Structure
+
+The configuration file stores:
+
+- **Executor identity**: ID, name, address
+- **API settings**: Base URL for Flowbaker API
+- **Cryptographic keys**: X25519 and Ed25519 key pairs
+- **Workspace assignments**: Connected workspaces and their credentials
+- **Registration settings**: Passcode configuration
+
+### File Permissions
+
+<Warning>
+  The configuration directory is created with `0700` permissions (owner read/write/execute only) to protect your private keys and credentials.
+</Warning>
+
+## API Base URL
+
+The Flowbaker API URL determines which Flowbaker instance your executor connects to.
+
+**Default**: `https://api.flowbaker.io` (production)
+
+**Environment variable**: `FLOWBAKER_API_URL`
+
+```bash
+# Use production (default)
+export FLOWBAKER_API_URL="https://api.flowbaker.io"
+
+# Use self-hosted instance
+export FLOWBAKER_API_URL="https://api.mycompany.com"
+```
+
+## Static Passcode Mode
+
+By default, a new passcode is generated for each setup. For automated deployments, you can enable static passcode mode:
+
+```bash
+export FLOWBAKER_ENABLE_STATIC_PASSCODE="true"
+export FLOWBAKER_STATIC_PASSCODE="your-secure-passcode-here"
+```
+
+<Warning>
+  **Security**: Use a strong, randomly generated passcode in production. The passcode grants access to register workspaces with your executor.
+</Warning>
+
+## Validation
+
+After setup completes, verify your configuration:
+
+```bash
+flowbaker status
+```
+
+This displays:
+- Executor ID and name
+- Connected workspaces
+- Last connection time
+- Configuration status
+
+## Reset Configuration
+
+To clear your configuration and run setup again:
+
+```bash
+flowbaker reset
+```
+
+<Warning>
+  This permanently deletes your local configuration file. Your executor registration remains on the Flowbaker platform but will need to be reconnected.
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/configuration/authentication">
+    Learn about API signatures and cryptographic keys
+  </Card>
+  <Card title="Environment Variables" icon="terminal" href="/configuration/environment">
+    Complete reference of configuration options
+  </Card>
+</CardGroup>

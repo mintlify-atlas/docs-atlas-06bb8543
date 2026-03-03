@@ -1,0 +1,291 @@
+---
+title: 'Workflow Model'
+description: 'Workflow domain model structure and fields'
+---
+
+## Overview
+
+The `Workflow` type represents a complete workflow definition in Flowbaker. Workflows are composed of nodes that define the automation logic.
+
+## Workflow Structure
+
+### Go Definition
+
+```go
+type Workflow struct {
+    ID               string
+    Name             string
+    Description      string
+    Slug             string
+    WorkspaceID      string
+    AuthorUserID     string
+    Nodes            []WorkflowNode
+    Settings         WorkflowSettings
+    LastUpdatedAt    time.Time
+    ActivationStatus WorkflowActivationStatus
+    DeletedAt        *time.Time
+}
+```
+
+### Fields
+
+<ParamField path="ID" type="string">
+  Unique identifier for the workflow
+</ParamField>
+
+<ParamField path="Name" type="string">
+  Human-readable name of the workflow
+</ParamField>
+
+<ParamField path="Description" type="string">
+  Detailed description of what the workflow does
+</ParamField>
+
+<ParamField path="Slug" type="string">
+  URL-friendly identifier for the workflow
+</ParamField>
+
+<ParamField path="WorkspaceID" type="string">
+  ID of the workspace this workflow belongs to
+</ParamField>
+
+<ParamField path="AuthorUserID" type="string">
+  ID of the user who created the workflow
+</ParamField>
+
+<ParamField path="Nodes" type="[]WorkflowNode">
+  Array of nodes that make up the workflow. See [Node model](/api/node)
+</ParamField>
+
+<ParamField path="Settings" type="WorkflowSettings">
+  Configuration settings for the workflow
+</ParamField>
+
+<ParamField path="LastUpdatedAt" type="time.Time">
+  Timestamp of the last modification
+</ParamField>
+
+<ParamField path="ActivationStatus" type="WorkflowActivationStatus">
+  Current activation status: `active` or `inactive`
+</ParamField>
+
+<ParamField path="DeletedAt" type="*time.Time">
+  Soft deletion timestamp (null if not deleted)
+</ParamField>
+
+---
+
+## Workflow Settings
+
+```go
+type WorkflowSettings struct {
+    NodeExecutionLimit int
+}
+```
+
+<ParamField path="NodeExecutionLimit" type="int">
+  Maximum number of times a node can execute in a single workflow run. Prevents infinite loops.
+</ParamField>
+
+---
+
+## Workflow Types
+
+### WorkflowType
+
+```go
+type WorkflowType string
+
+const (
+    WorkflowTypeDefault WorkflowType = "default"
+    WorkflowTypeTesting WorkflowType = "testing"
+)
+```
+
+<ParamField path="default" type="WorkflowType">
+  Production workflow that executes in the main environment
+</ParamField>
+
+<ParamField path="testing" type="WorkflowType">
+  Testing workflow used for development and validation
+</ParamField>
+
+---
+
+## Workflow Activation Status
+
+```go
+type WorkflowActivationStatus string
+
+const (
+    WorkflowActivationStatusActive   WorkflowActivationStatus = "active"
+    WorkflowActivationStatusInactive WorkflowActivationStatus = "inactive"
+)
+```
+
+<ParamField path="active" type="WorkflowActivationStatus">
+  Workflow is active and can be triggered
+</ParamField>
+
+<ParamField path="inactive" type="WorkflowActivationStatus">
+  Workflow is inactive and will not be triggered
+</ParamField>
+
+---
+
+## Helper Methods
+
+### IsActive
+
+Checks if the workflow is currently active.
+
+```go
+func (w Workflow) IsActive() bool
+```
+
+**Example:**
+```go
+if workflow.IsActive() {
+    // Execute the workflow
+}
+```
+
+### GetNodeByID
+
+Retrieves a specific node by its ID.
+
+```go
+func (w Workflow) GetNodeByID(nodeID string) (WorkflowNode, bool)
+```
+
+**Example:**
+```go
+node, found := workflow.GetNodeByID("node-123")
+if found {
+    // Process the node
+}
+```
+
+### GetTriggerNodes
+
+Returns all trigger nodes in the workflow.
+
+```go
+func (w Workflow) GetTriggerNodes() []WorkflowNode
+```
+
+**Example:**
+```go
+triggers := workflow.GetTriggerNodes()
+for _, trigger := range triggers {
+    // Process each trigger
+}
+```
+
+### GetActionNodes
+
+Returns all action nodes in the workflow.
+
+```go
+func (w Workflow) GetActionNodes() []WorkflowNode
+```
+
+**Example:**
+```go
+actions := workflow.GetActionNodes()
+for _, action := range actions {
+    // Process each action
+}
+```
+
+### GetSubNodes
+
+Returns all nodes that are children of a specific parent node.
+
+```go
+func (w Workflow) GetSubNodes(nodeID string) []WorkflowNode
+```
+
+**Example:**
+```go
+subNodes := workflow.GetSubNodes("parent-node-123")
+```
+
+---
+
+## JSON Example
+
+```json
+{
+  "id": "wf-abc123",
+  "name": "Customer Onboarding",
+  "description": "Automates customer onboarding process",
+  "slug": "customer-onboarding",
+  "workspace_id": "ws-xyz789",
+  "author_user_id": "user-456",
+  "nodes": [
+    {
+      "id": "node-001",
+      "name": "Webhook Trigger",
+      "type": "trigger",
+      "integration_type": "webhook"
+    },
+    {
+      "id": "node-002",
+      "name": "Send Welcome Email",
+      "type": "action",
+      "integration_type": "email"
+    }
+  ],
+  "settings": {
+    "node_execution_limit": 100
+  },
+  "last_updated_at": "2026-03-03T10:00:00Z",
+  "activation_status": "active",
+  "deleted_at": null
+}
+```
+
+---
+
+## Usage in API Requests
+
+Workflows are passed in API requests for execution:
+
+```bash
+curl -X POST \
+  http://localhost:8080/workspaces/ws-xyz789/executions \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "execution_id": "exec-123",
+    "workflow": {
+      "id": "wf-abc123",
+      "name": "Customer Onboarding",
+      "workspace_id": "ws-xyz789",
+      "nodes": [...],
+      "settings": {
+        "node_execution_limit": 100
+      },
+      "activation_status": "active"
+    },
+    "event_name": "customer.created",
+    "payload_json": "..."
+  }'
+```
+
+---
+
+## Related Models
+
+<CardGroup cols={2}>
+  <Card title="Node Model" icon="circle-nodes" href="/api/node">
+    Learn about workflow nodes
+  </Card>
+  <Card title="Integration Model" icon="plug" href="/api/integration">
+    Understand integrations
+  </Card>
+</CardGroup>
+
+## Source Code Reference
+
+Definition: `pkg/domain/workflow.go:26`

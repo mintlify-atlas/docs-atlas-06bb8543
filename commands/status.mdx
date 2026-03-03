@@ -1,0 +1,128 @@
+---
+title: 'flowbaker status'
+description: 'Show current executor status and configuration'
+---
+
+## Overview
+
+The `flowbaker status` command displays the current status of the executor including configuration details and workspace assignments.
+
+## Usage
+
+```bash
+flowbaker status
+```
+
+## Output
+
+### Executor is Set Up
+
+When the executor is properly configured, you'll see:
+
+```bash
+flowbaker status
+```
+
+```
+✅ Executor is set up and ready
+   Executor ID: exec_abc123def456
+   Workspaces (2): production, staging
+   API URL: https://api.flowbaker.com
+   Last connected: 2026-03-03 14:32:15
+```
+
+### Executor Not Set Up
+
+If the executor hasn't been configured yet:
+
+```bash
+flowbaker status
+```
+
+```
+❌ Executor is not set up
+Run 'flowbaker start' to begin setup
+```
+
+## Information Displayed
+
+<ParamField path="Executor ID" type="string">
+  Unique identifier for this executor instance. This ID is generated during first-time setup and used to authenticate with the Flowbaker API.
+</ParamField>
+
+<ParamField path="Workspaces" type="array">
+  List of workspace names that this executor is assigned to. Shows the count and comma-separated names of all assigned workspaces.
+</ParamField>
+
+<ParamField path="API URL" type="string">
+  Base URL of the Flowbaker API that this executor connects to. Typically `https://api.flowbaker.com` for production.
+</ParamField>
+
+<ParamField path="Last connected" type="timestamp">
+  Timestamp of the last successful connection to the Flowbaker API. Format: `YYYY-MM-DD HH:MM:SS`
+</ParamField>
+
+## Examples
+
+### Check status after setup
+
+```bash
+flowbaker start
+# Complete setup process...
+flowbaker status
+```
+
+```
+✅ Executor is set up and ready
+   Executor ID: exec_xyz789
+   Workspaces (1): my-workspace
+   API URL: https://api.flowbaker.com
+   Last connected: 2026-03-03 14:32:15
+```
+
+### Check status before setup
+
+```bash
+flowbaker status
+```
+
+```
+❌ Executor is not set up
+Run 'flowbaker start' to begin setup
+```
+
+## Use Cases
+
+### Verify Configuration
+
+Quickly verify that the executor is properly configured:
+
+```bash
+flowbaker status && echo "Ready to execute workflows"
+```
+
+### Check Workspace Assignments
+
+Confirm which workspaces this executor can handle:
+
+```bash
+flowbaker status | grep Workspaces
+```
+
+### Monitoring and Health Checks
+
+Use in scripts to verify executor health:
+
+```bash
+if flowbaker status | grep -q "✅"; then
+  echo "Executor is healthy"
+else
+  echo "Executor needs setup"
+  flowbaker start
+fi
+```
+
+## Exit Codes
+
+- **0**: Command executed successfully
+- **Non-zero**: Error occurred (e.g., failed to load configuration)

@@ -1,0 +1,206 @@
+---
+title: 'Workspace Endpoints'
+description: 'Register and manage workspace assignments'
+---
+
+## Register Workspace
+
+Registers a new workspace with the executor. This endpoint is only available when `EnableWorkspaceRegistration` is enabled in the executor configuration.
+
+<Warning>
+This endpoint does **not** require authentication, but it does require a valid passcode configured on the executor.
+</Warning>
+
+```bash
+POST /workspaces
+```
+
+### Request Body
+
+<ParamField body="executor_id" type="string" required>
+  The unique identifier of the executor instance
+</ParamField>
+
+<ParamField body="passcode" type="string" required>
+  The executor passcode for authorization
+</ParamField>
+
+<ParamField body="assignment" type="WorkspaceAssignment" required>
+  The workspace assignment configuration
+</ParamField>
+
+### WorkspaceAssignment Structure
+
+<ParamField body="workspace_id" type="string" required>
+  The unique identifier of the workspace
+</ParamField>
+
+<ParamField body="workspace_name" type="string" required>
+  The human-readable name of the workspace
+</ParamField>
+
+<ParamField body="workspace_slug" type="string" required>
+  The URL-friendly slug for the workspace
+</ParamField>
+
+<ParamField body="api_public_key" type="string" required>
+  Base64-encoded ED25519 public key for API signature verification
+</ParamField>
+
+### Response
+
+<ResponseField name="success" type="boolean">
+  Whether the registration succeeded
+</ResponseField>
+
+### Example Request
+
+```bash
+curl -X POST \
+  http://localhost:8080/workspaces \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "executor_id": "exec-abc123",
+    "passcode": "your-secure-passcode",
+    "assignment": {
+      "workspace_id": "ws-xyz789",
+      "workspace_name": "My New Workspace",
+      "workspace_slug": "my-new-workspace",
+      "api_public_key": "base64-encoded-public-key"
+    }
+  }'
+```
+
+### Example Response
+
+```json
+{
+  "success": true
+}
+```
+
+### Error Responses
+
+**Invalid Passcode:**
+```json
+{
+  "error": "Invalid passcode"
+}
+```
+**HTTP 401 Unauthorized**
+
+**Registration Disabled:**
+```json
+{
+  "error": "Workspace registration is not enabled"
+}
+```
+**HTTP 404 Not Found**
+
+---
+
+## Unregister Workspace
+
+Removes a workspace assignment from the executor.
+
+<Warning>
+This endpoint requires API signature authentication.
+</Warning>
+
+```bash
+DELETE /workspaces/:workspaceID
+```
+
+### Path Parameters
+
+<ParamField path="workspaceID" type="string" required>
+  The unique identifier of the workspace to unregister
+</ParamField>
+
+### Response
+
+<ResponseField name="success" type="boolean">
+  Whether the unregistration succeeded
+</ResponseField>
+
+### Example Request
+
+```bash
+curl -X DELETE \
+  http://localhost:8080/workspaces/ws-xyz789 \
+  -H 'X-API-Signature: ed25519=...' \
+  -H 'X-API-Timestamp: 1709467200'
+```
+
+### Example Response
+
+```json
+{
+  "success": true
+}
+```
+
+---
+
+## Workspace Configuration
+
+Workspaces can be configured in two ways:
+
+### 1. Static Configuration
+
+Define workspace assignments in the executor configuration file:
+
+```yaml
+workspace_assignments:
+  - workspace_id: "ws-abc123"
+    workspace_name: "Production Workspace"
+    workspace_slug: "production"
+    api_public_key: "base64-encoded-public-key"
+  - workspace_id: "ws-def456"
+    workspace_name: "Staging Workspace"
+    workspace_slug: "staging"
+    api_public_key: "base64-encoded-public-key"
+```
+
+### 2. Dynamic Registration
+
+Enable dynamic registration in the executor configuration:
+
+```yaml
+enable_workspace_registration: true
+registration_passcode: "your-secure-passcode"
+```
+
+Then use the `POST /workspaces` endpoint to register workspaces at runtime.
+
+## Workspace Isolation
+
+Each workspace operates in isolation:
+
+- **Separate API Keys** - Each workspace has its own ED25519 key pair for authentication
+- **Isolated Credentials** - Credentials are scoped to workspaces
+- **Separate Storage** - Workflow data and execution state are workspace-specific
+- **Independent Limits** - Each workspace has its own resource limits
+
+## Best Practices
+
+<Card title="Security" icon="shield">
+  - Use strong, unique passcodes for executor registration
+  - Rotate API keys periodically
+  - Monitor workspace registration attempts
+  - Disable registration in production if not needed
+</Card>
+
+<Card title="Management" icon="gear">
+  - Use descriptive workspace names and slugs
+  - Document which executor handles which workspaces
+  - Test workspace registration in staging first
+  - Keep workspace assignments in version control
+</Card>
+
+## Source Code Reference
+
+Implementation can be found in:
+- Registration handler: `internal/controllers/executor_controller.go:34`
+- Unregistration handler: `internal/controllers/executor_controller.go:308`
+- Server routing: `internal/server/server.go:46`

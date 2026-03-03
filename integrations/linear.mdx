@@ -1,0 +1,139 @@
+---
+title: Linear Integration
+description: Manage Linear issues, comments, and links with Flowbaker's Linear integration.
+---
+
+The Linear integration enables you to automate issue tracking and project management workflows in Linear.
+
+## Authentication
+
+Connect your Linear account using OAuth 2.0:
+
+- **Linear Account** (required): OAuth authentication for Linear
+
+## Available Actions
+
+### Issue Management
+
+#### Create Issue
+Create a new issue in Linear.
+
+**Parameters:**
+- `team_id` (required): Team the issue belongs to
+- `title` (required): Issue title
+- `description` (optional): Detailed description (supports Markdown)
+- `priority_id` (optional): Priority level
+- `assignee_id` (optional): User to assign the issue to
+- `label_ids` (optional): Array of label IDs
+- `state_id` (optional): Initial workflow status (e.g., 'Backlog', 'Todo')
+
+#### Get Issue
+Retrieve a single Linear issue by ID.
+
+**Parameters:**
+- `issue_id` (required): Linear issue ID
+
+#### Get Many Issues
+Retrieve multiple issues with filters.
+
+**Parameters:**
+- `team_id` (optional): Filter by team
+- `assignee_id` (optional): Filter by assignee
+- `label_ids` (optional): Filter by one or more labels
+- `query` (optional): Text search in title or description
+- `limit` (optional): Maximum results (default: 50, max: 100)
+
+#### Update Issue
+Update an existing Linear issue.
+
+**Parameters:**
+- `issue_id` (required): Issue ID to update
+- `title` (optional): New title
+- `description` (optional): New description (supports Markdown)
+- `team_id` (optional): Move to different team
+- `priority_id` (optional): New priority
+- `assignee_id` (optional): Reassign to different user
+- `label_ids` (optional): New labels (replaces existing)
+- `state_id` (optional): New workflow status
+
+#### Delete Issue
+Delete an existing issue.
+
+**Parameters:**
+- `issue_id` (required): Issue ID to delete
+
+### Collaboration
+
+#### Add Comment to Issue
+Add a comment to an issue.
+
+**Parameters:**
+- `issue_id` (required): Issue ID
+- `body` (required): Comment content (supports Markdown)
+
+#### Add Link to Issue
+Attach a URL link to an issue.
+
+**Parameters:**
+- `issue_id` (required): Issue ID
+- `url` (required): URL to attach
+- `title` (optional): Link title
+
+## Available Triggers
+
+### Linear Event Listener
+
+Triggers when new events occur in Linear.
+
+**Configuration:**
+- `team_id` (required): Linear team to monitor
+- `resource_types` (required): Select one or more:
+  - **Issues**: Track tasks, bugs, and features
+  - **Comments**: Comments and discussions
+  - **Attachments**: Files and links attached to issues
+  - **Issue Labels**: Categories and tags
+  - **Cycles**: Time-boxed work periods
+  - **Projects**: Collections of issues
+  - **Project Updates**: Status updates on projects
+
+## Configuration Example
+
+```json
+{
+  "team_id": "team_abc123",
+  "title": "Implement user authentication",
+  "description": "Add OAuth 2.0 authentication flow",
+  "priority_id": "1",
+  "assignee_id": "user_xyz789",
+  "label_ids": ["label_feature", "label_backend"],
+  "state_id": "state_todo"
+}
+```
+
+## Best Practices
+
+1. Use team IDs consistently across workflows
+2. Leverage Markdown in descriptions and comments
+3. Set appropriate priorities for issue triage
+4. Use labels to categorize and filter issues
+5. Configure triggers for specific resource types only
+6. Organize issues by cycles and projects
+7. Link related issues and external resources
+
+## Workflow States
+
+Linear uses customizable workflow states:
+- **Backlog**: Ideas and future work
+- **Todo**: Ready to start
+- **In Progress**: Currently being worked on
+- **Done**: Completed work
+- **Canceled**: Abandoned or rejected
+
+## Priority Levels
+
+Linear supports priority levels:
+- **No Priority** (0)
+- **Urgent** (1)
+- **High** (2)
+- **Medium** (3)
+- **Low** (4)

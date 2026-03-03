@@ -1,0 +1,224 @@
+---
+title: 'Notion'
+description: 'Manage Notion pages, databases, and blocks with full CRUD operations.'
+---
+
+## Overview
+
+The Notion integration enables you to interact with your Notion workspace, including creating and managing pages, databases, blocks, and users.
+
+## Configuration
+
+To set up the Notion integration, you need to authenticate with OAuth:
+
+| Field | Description | Required |
+|-------|-------------|----------|
+| **Notion Account** | OAuth account for Notion | Yes |
+
+The integration uses OAuth 2.0 to authenticate with your Notion workspace.
+
+## Available Actions
+
+### Block Operations
+
+#### Append a Block
+
+Append child blocks to a parent block.
+
+**Parameters:**
+- **Block ID**: The ID of the parent block
+- **Children Blocks**: Array of block objects (valid Notion block JSON)
+
+**Example:**
+```json
+[
+  {
+    "object": "block",
+    "type": "paragraph",
+    "paragraph": {
+      "rich_text": [{"type": "text", "text": {"content": "Hello World"}}]
+    }
+  }
+]
+```
+
+#### Get Many Child Blocks
+
+Retrieve a list of child blocks from a parent block.
+
+**Parameters:**
+- **Block ID**: The ID of the parent block
+- **Start Cursor**: Pagination cursor for the next page
+- **Page Size**: Number of items to return (max 100)
+
+### Database Operations
+
+#### Get a Database
+
+Retrieve a database object by its ID.
+
+**Parameters:**
+- **Database ID**: The ID of the database to retrieve
+
+#### Get Many Databases
+
+Search and retrieve multiple databases.
+
+**Parameters:**
+- **Search Query**: Text to search for in database titles
+- **Start Cursor**: Pagination cursor
+- **Page Size**: Number of items to return (max 100)
+
+#### Search a Database
+
+Query a database with filters and sorts.
+
+**Parameters:**
+- **Database ID**: The ID of the database to query
+- **Filter**: Filter object (valid Notion filter JSON)
+- **Sorts**: Array of sort objects (valid Notion sort JSON)
+- **Start Cursor**: Pagination cursor
+- **Page Size**: Number of items to return (max 100)
+
+**Example Filter:**
+```json
+{
+  "property": "Status",
+  "select": {
+    "equals": "Done"
+  }
+}
+```
+
+#### Create a Database Page
+
+Create a new page in a database.
+
+**Parameters:**
+- **Database ID**: The ID of the database
+- **Properties**: Page properties object (valid Notion properties JSON)
+- **Children Blocks**: Array of block objects for page content (optional)
+
+**Example Properties:**
+```json
+{
+  "Name": {
+    "title": [{"text": {"content": "New Task"}}]
+  },
+  "Status": {
+    "select": {"name": "In Progress"}
+  }
+}
+```
+
+#### Get a Database Page
+
+Retrieve a page from a database by its ID.
+
+**Parameters:**
+- **Page ID**: The ID of the page to retrieve
+
+#### Get Many Database Pages
+
+Query and retrieve multiple pages from a database.
+
+**Parameters:**
+- **Database ID**: The ID of the database to query
+- **Filter**: Filter object (optional)
+- **Sorts**: Array of sort objects (optional)
+- **Start Cursor**: Pagination cursor
+- **Page Size**: Number of items to return (max 100)
+
+#### Update a Database Page
+
+Update the properties of a database page.
+
+**Parameters:**
+- **Page ID**: The ID of the page to update
+- **Properties**: Page properties object to update
+- **Archived**: Set to true to archive the page
+
+#### Archive a Page
+
+Archive a page by setting its archived property to true.
+
+**Parameters:**
+- **Page ID**: The ID of the page to archive
+
+### Page Operations
+
+#### Create a Page
+
+Create a new page in Notion.
+
+**Parameters:**
+- **Parent Page ID**: The ID of the parent page (use this OR parent database ID)
+- **Parent Database ID**: The ID of the parent database (use this OR parent page ID)
+- **Properties**: Page properties object (valid Notion properties JSON)
+- **Children Blocks**: Array of block objects for page content (optional)
+
+#### Search a Page
+
+Search for pages in Notion workspace.
+
+**Parameters:**
+- **Search Query**: Text to search for in page titles and content
+- **Start Cursor**: Pagination cursor
+- **Page Size**: Number of items to return (max 100)
+
+### User Operations
+
+#### Get a User
+
+Retrieve a user object by its ID.
+
+**Parameters:**
+- **User ID**: The ID of the user to retrieve
+
+#### Get Many Users
+
+Retrieve a list of all users in the workspace.
+
+**Parameters:**
+- **Start Cursor**: Pagination cursor
+- **Page Size**: Number of items to return (max 100)
+
+## Available Triggers
+
+### Notion Event Listener
+
+Triggers on selected Notion events.
+
+**Parameters:**
+- **Database ID**: The database to monitor (optional - leave empty to monitor all resources)
+- **Notion Events**: Select one or more events to trigger:
+  - **On Page Created**: When a new page is created
+  - **On Page Property Updated**: When a page's properties are updated
+  - **On Page Content Updated**: When a page's content blocks are updated
+
+## Example Workflows
+
+### Create Task in Database
+
+1. **Action**: Create a Database Page
+2. Set properties like Name, Status, Due Date
+3. Optionally add content blocks
+
+### Archive Completed Tasks
+
+1. **Action**: Search a Database with filter for "Status = Done"
+2. **Action**: Archive a Page for each result
+
+### Monitor Database Changes
+
+1. **Trigger**: Notion Event Listener on specific database
+2. Listen for page created or updated events
+3. Process changes in your workflow
+
+## Tips
+
+- Use the Notion API documentation to understand property and block JSON formats
+- Database and page IDs can be found in the Notion URL
+- Filters and sorts follow Notion's API specification
+- The integration supports pagination for large result sets
+- Test your property JSON with small examples before scaling up

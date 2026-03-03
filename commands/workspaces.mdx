@@ -1,0 +1,159 @@
+---
+title: 'flowbaker workspaces'
+description: 'Manage workspace assignments for the executor'
+---
+
+## Overview
+
+The `flowbaker workspaces` command manages workspace assignments for the executor. Use this command to view which workspaces the executor is assigned to.
+
+## Usage
+
+```bash
+flowbaker workspaces <subcommand>
+```
+
+## Subcommands
+
+### list
+
+List all workspaces that this executor is assigned to.
+
+```bash
+flowbaker workspaces list
+```
+
+## Examples
+
+### List assigned workspaces
+
+```bash
+flowbaker workspaces list
+```
+
+**Output:**
+
+```
+📋 Assigned Workspaces:
+   1. production (prod)
+   2. staging (staging)
+   3. development (dev)
+
+Total: 3 workspace(s)
+```
+
+### When no workspaces are assigned
+
+```bash
+flowbaker workspaces list
+```
+
+```
+📋 Assigned Workspaces:
+   No workspaces assigned
+```
+
+### When executor is not set up
+
+```bash
+flowbaker workspaces list
+```
+
+```
+❌ Executor is not set up. Run 'start' to begin setup.
+```
+
+## Output Format
+
+Each workspace is displayed with:
+
+<ParamField path="Name" type="string">
+  The human-readable name of the workspace.
+</ParamField>
+
+<ParamField path="Slug" type="string">
+  The URL-friendly identifier for the workspace, shown in parentheses.
+</ParamField>
+
+<ParamField path="Total" type="number">
+  Total count of assigned workspaces displayed at the end.
+</ParamField>
+
+## Workspace Assignment Details
+
+Workspace assignments determine which workflows this executor can run. When a workflow is triggered in a workspace:
+
+1. The Flowbaker API checks which executors are assigned to that workspace
+2. Selects an available executor from the assigned pool
+3. Sends the workflow execution request to the selected executor
+
+## Use Cases
+
+### Verify Workspace Access
+
+Check if the executor has access to a specific workspace:
+
+```bash
+flowbaker workspaces list | grep "production"
+```
+
+### List Workspaces in Scripts
+
+Use in automation scripts to verify assignments:
+
+```bash
+WORKSPACE_COUNT=$(flowbaker workspaces list | grep "Total:" | awk '{print $2}')
+if [ "$WORKSPACE_COUNT" -eq 0 ]; then
+  echo "Warning: No workspaces assigned to this executor"
+fi
+```
+
+### Monitor Workspace Configuration
+
+Regularly check workspace assignments as part of monitoring:
+
+```bash
+flowbaker workspaces list
+```
+
+## Requirements
+
+<ParamField path="Setup" type="boolean" required>
+  The executor must be set up before listing workspaces. Run `flowbaker start` first if not configured.
+</ParamField>
+
+<ParamField path="API Connection" type="boolean" required>
+  Requires active connection to the Flowbaker API to fetch workspace details.
+</ParamField>
+
+## Troubleshooting
+
+### Executor Not Set Up
+
+If you see the "not set up" error:
+
+```bash
+flowbaker start
+# Complete setup...
+flowbaker workspaces list
+```
+
+### API Connection Failed
+
+If workspace details cannot be fetched:
+
+```bash
+# Check API connectivity
+curl https://api.flowbaker.com/health
+
+# Verify executor configuration
+flowbaker status
+```
+
+### No Workspaces Assigned
+
+If no workspaces appear:
+
+1. Check the Flowbaker dashboard to verify workspace assignments
+2. Ensure the executor ID matches the registered executor
+3. Contact your workspace administrator to assign workspaces

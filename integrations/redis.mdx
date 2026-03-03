@@ -1,0 +1,222 @@
+---
+title: 'Redis'
+description: 'Use Redis integration to perform database operations including string, hash, list, set, sorted set operations and key management.'
+---
+
+## Overview
+
+The Redis integration allows you to interact with Redis, an in-memory data structure store. You can perform operations on strings, hashes, lists, sets, sorted sets, and manage keys.
+
+## Configuration
+
+To set up the Redis integration, you need to provide the following credentials:
+
+| Field | Description | Required |
+|-------|-------------|----------|
+| **Host** | Redis server hostname or IP address | Yes |
+| **Port** | Redis server port (default: 6379) | Yes |
+| **Password** | Redis server password (leave empty if no password) | No |
+| **Database** | Redis database number (0-15, default: 0) | No |
+| **Username** | Redis username (for Redis 6.0+ ACL) | No |
+| **TLS** | Enable TLS/SSL connection | No |
+| **TLS Skip Verify** | Skip TLS certificate verification (use only for development/testing) | No |
+| **TLS Server Name** | Custom server name for TLS certificate validation | No |
+
+### Example Configuration
+
+```json
+{
+  "host": "localhost",
+  "port": "6379",
+  "database": "0"
+}
+```
+
+## Available Actions
+
+### String Operations
+
+#### Get String Value
+Get the value of a key.
+
+#### Set String Value
+Set the value of a key with optional expiration.
+
+#### Delete Keys
+Delete one or more keys.
+
+#### Check Key Existence
+Check if one or more keys exist.
+
+#### Increment
+Increment the integer value of a key by one.
+
+#### Decrement
+Decrement the integer value of a key by one.
+
+#### Append to String
+Append a value to a key.
+
+#### String Length
+Get the length of the value stored in a key.
+
+### Hash Operations
+
+#### Get Hash Field
+Get the value of a hash field.
+
+#### Set Hash Fields
+Set the value of hash fields.
+
+#### Delete Hash Fields
+Delete one or more hash fields.
+
+#### Check Hash Field Existence
+Check if a hash field exists.
+
+#### Get All Hash Fields
+Get all fields and values in a hash.
+
+#### Get Hash Field Names
+Get all field names in a hash.
+
+#### Get Hash Values
+Get all values in a hash.
+
+#### Get Hash Length
+Get the number of fields in a hash.
+
+### List Operations
+
+#### Push to List (Left)
+Push one or more values to the head of a list.
+
+#### Push to List (Right)
+Push one or more values to the tail of a list.
+
+#### Pop from List (Left)
+Remove and return elements from the head of a list.
+
+#### Pop from List (Right)
+Remove and return elements from the tail of a list.
+
+#### Get List Length
+Get the length of a list.
+
+#### Get List Range
+Get a range of elements from a list.
+
+#### Get List Element by Index
+Get an element from a list by its index.
+
+#### Set List Element by Index
+Set the value of an element in a list by its index.
+
+### Set Operations
+
+#### Add to Set
+Add one or more members to a set.
+
+#### Remove from Set
+Remove one or more members from a set.
+
+#### Get Set Members
+Get all members in a set.
+
+#### Check Set Membership
+Check if a member exists in a set.
+
+#### Get Set Cardinality
+Get the number of members in a set.
+
+#### Pop from Set
+Remove and return random members from a set.
+
+### Sorted Set Operations
+
+#### Add to Sorted Set
+Add one or more members to a sorted set with scores.
+
+#### Remove from Sorted Set
+Remove one or more members from a sorted set.
+
+#### Get Sorted Set Range
+Get a range of members from a sorted set by index.
+
+#### Get Sorted Set Range (Reverse)
+Get a range of members from a sorted set by index in reverse order.
+
+#### Get Sorted Set Range by Score
+Get members from a sorted set by score range.
+
+#### Get Sorted Set Range by Score (Reverse)
+Get members from a sorted set by score range in reverse order.
+
+#### Get Sorted Set Cardinality
+Get the number of members in a sorted set.
+
+#### Get Sorted Set Member Score
+Get the score of a member in a sorted set.
+
+#### Get Sorted Set Member Rank
+Get the rank of a member in a sorted set.
+
+### Key Management Operations
+
+#### Find Keys
+Find all keys matching a pattern (use * for wildcard).
+
+#### Set Key Expiration
+Set a timeout on a key in seconds.
+
+#### Get Key TTL
+Get the time to live for a key.
+
+#### Get Key Type
+Get the type of a key.
+
+#### Rename Key
+Rename a key.
+
+#### Remove Key Expiration
+Remove the expiration from a key.
+
+#### Agent Conversation Memory
+Use Conversation Memory to store and retrieve conversation history for AI agent.
+
+## Example Usage
+
+### Setting a Value with Expiration
+
+```json
+{
+  "key": "session:user123",
+  "value": "active",
+  "expiration": 3600
+}
+```
+
+### Working with Hash Fields
+
+```json
+{
+  "key": "user:1000",
+  "fields": {
+    "name": "John Doe",
+    "email": "john@example.com",
+    "age": "30"
+  }
+}
+```
+
+### Adding to Sorted Set
+
+```json
+{
+  "key": "leaderboard",
+  "members": [
+    {"member": "player1", "score": 100},
+    {"member": "player2", "score": 95}
+  ]
+}
+```

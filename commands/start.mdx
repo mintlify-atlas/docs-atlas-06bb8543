@@ -1,0 +1,116 @@
+---
+title: 'flowbaker start'
+description: 'Start the Flowbaker executor service'
+---
+
+## Overview
+
+The `flowbaker start` command starts the executor service. If this is the first time running, it will automatically guide you through the setup process.
+
+## Usage
+
+```bash
+flowbaker start
+```
+
+## Behavior
+
+### First-Time Setup
+
+When running for the first time, the command will:
+
+1. Start a health check server on port 8081
+2. Guide you through the initial setup process
+3. Register the executor with the Flowbaker API
+4. Generate Ed25519 keys for secure authentication
+5. Configure workspace assignments
+
+During setup, the health check server runs at `http://localhost:8081/health` to allow the API to verify connectivity.
+
+### Normal Operation
+
+After setup is complete, the command will:
+
+1. Load the executor configuration
+2. Initialize the Flowbaker client with signature-based authentication
+3. Build executor dependencies
+4. Start the HTTP server on port 8081
+5. Listen for workflow execution requests
+
+## Examples
+
+### Start the executor
+
+```bash
+flowbaker start
+```
+
+**First-time output:**
+
+```
+Welcome to Flowbaker Executor Setup
+Please visit the Flowbaker API to get your registration token...
+Starting executor service
+```
+
+**Normal operation output:**
+
+```
+Starting executor service
+Executor configuration loaded
+  executor_id: exec_abc123
+  api_base_url: https://api.flowbaker.com
+Flowbaker client with signature-based auth ready
+HTTP server listening on :8081
+```
+
+## Graceful Shutdown
+
+The executor listens for interrupt signals (Ctrl+C, SIGTERM) and will gracefully shutdown:
+
+```bash
+^C
+Shutting down executor service...
+Executor service stopped
+```
+
+## Server Configuration
+
+<ParamField path="Port" type="number" default="8081">
+  The HTTP server listens on port 8081 for incoming workflow execution requests.
+</ParamField>
+
+<ParamField path="Health Check" type="string" default="/health">
+  Health check endpoint returns executor status and version information.
+</ParamField>
+
+## Authentication
+
+The executor uses Ed25519 signature-based authentication to communicate securely with the Flowbaker API. Keys are automatically generated during first-time setup and stored in the configuration.
+
+## Troubleshooting
+
+### Port Already in Use
+
+If port 8081 is already in use, stop any existing processes:
+
+```bash
+lsof -ti:8081 | xargs kill -9
+```
+
+### Setup Not Complete
+
+If the executor fails to start with "No configuration found":
+
+```bash
+flowbaker reset
+flowbaker start
+```
+
+### Connection Issues
+
+Verify network connectivity to the API:
+
+```bash
+curl https://api.flowbaker.com/health
+```

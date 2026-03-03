@@ -1,0 +1,350 @@
+---
+title: 'Node Model'
+description: 'Workflow node structure and configuration'
+---
+
+## Overview
+
+Nodes are the building blocks of workflows. Each node represents either a trigger (event source) or an action (operation) in the workflow automation.
+
+## Node Structure
+
+### Go Definition
+
+```go
+type WorkflowNode struct {
+    ID                           string
+    WorkflowID                   string
+    Name                         string
+    Type                         NodeType
+    IntegrationType              IntegrationType
+    SubscribedEvents             []string
+    Positions                    NodePositions
+    IntegrationSettings          map[string]any
+    Settings                     NodeSettings
+    ExpressionSelectedProperties []string
+    ProvidedByAgent              []string
+    Inputs                       []NodeInput
+    UsageContext                 string
+    ParentID                     string
+    TriggerNodeOpts              TriggerNodeOpts
+    ActionNodeOpts               ActionNodeOpts
+}
+```
+
+### Core Fields
+
+<ParamField path="ID" type="string">
+  Unique identifier for the node
+</ParamField>
+
+<ParamField path="WorkflowID" type="string">
+  ID of the workflow this node belongs to
+</ParamField>
+
+<ParamField path="Name" type="string">
+  Human-readable name of the node
+</ParamField>
+
+<ParamField path="Type" type="NodeType">
+  Type of node: `trigger` or `action`
+</ParamField>
+
+<ParamField path="IntegrationType" type="IntegrationType">
+  The integration this node uses (e.g., `slack`, `postgresql`, `openai`). See [Integration model](/api/integration)
+</ParamField>
+
+<ParamField path="SubscribedEvents" type="[]string">
+  List of event names this node subscribes to
+</ParamField>
+
+<ParamField path="Positions" type="NodePositions">
+  Visual positioning coordinates for the workflow canvas
+</ParamField>
+
+<ParamField path="IntegrationSettings" type="map[string]any">
+  Configuration specific to the integration (e.g., database connection details, API endpoints)
+</ParamField>
+
+<ParamField path="Settings" type="NodeSettings">
+  Common node execution settings
+</ParamField>
+
+<ParamField path="ExpressionSelectedProperties" type="[]string">
+  Properties that use expression syntax for dynamic values
+</ParamField>
+
+<ParamField path="ProvidedByAgent" type="[]string">
+  Properties provided by AI agents
+</ParamField>
+
+<ParamField path="Inputs" type="[]NodeInput">
+  Input connections from other nodes
+</ParamField>
+
+<ParamField path="UsageContext" type="string">
+  Context in which the node is used: `workflow`, `tool`, `llm_provider`, `memory_provider`
+</ParamField>
+
+<ParamField path="ParentID" type="string">
+  ID of the parent node (for nested/sub-nodes)
+</ParamField>
+
+<ParamField path="TriggerNodeOpts" type="TriggerNodeOpts">
+  Additional options for trigger nodes
+</ParamField>
+
+<ParamField path="ActionNodeOpts" type="ActionNodeOpts">
+  Additional options for action nodes
+</ParamField>
+
+---
+
+## Node Types
+
+```go
+type NodeType string
+
+const (
+    NodeTypeTrigger NodeType = "trigger"
+    NodeTypeAction  NodeType = "action"
+)
+```
+
+<ParamField path="trigger" type="NodeType">
+  Trigger nodes start workflow executions based on events (webhooks, schedules, polling, etc.)
+</ParamField>
+
+<ParamField path="action" type="NodeType">
+  Action nodes perform operations (API calls, database queries, transformations, etc.)
+</ParamField>
+
+---
+
+## Node Settings
+
+```go
+type NodeSettings struct {
+    ReturnErrorAsItem       bool
+    OverwriteExecutionLimit bool
+    ExecutionLimit          int
+}
+```
+
+<ParamField path="ReturnErrorAsItem" type="bool">
+  If true, errors are returned as regular items instead of stopping execution
+</ParamField>
+
+<ParamField path="OverwriteExecutionLimit" type="bool">
+  If true, use this node's execution limit instead of the workflow's default
+</ParamField>
+
+<ParamField path="ExecutionLimit" type="int">
+  Maximum number of times this node can execute in a single workflow run
+</ParamField>
+
+---
+
+## Node Positions
+
+```go
+type NodePositions struct {
+    XPosition float64
+    YPosition float64
+}
+```
+
+<ParamField path="XPosition" type="float64">
+  Horizontal position on the workflow canvas
+</ParamField>
+
+<ParamField path="YPosition" type="float64">
+  Vertical position on the workflow canvas
+</ParamField>
+
+---
+
+## Node Input
+
+```go
+type NodeInput struct {
+    InputID          string
+    SubscribedEvents []string
+}
+```
+
+<ParamField path="InputID" type="string">
+  Unique identifier for this input connection
+</ParamField>
+
+<ParamField path="SubscribedEvents" type="[]string">
+  Events this input listens to from connected nodes
+</ParamField>
+
+---
+
+## Trigger Node Options
+
+```go
+type TriggerNodeOpts struct {
+    EventType IntegrationTriggerEventType
+}
+```
+
+<ParamField path="EventType" type="IntegrationTriggerEventType">
+  Specific trigger event type from the integration (e.g., `new_message`, `schedule`, `webhook_received`)
+</ParamField>
+
+---
+
+## Action Node Options
+
+```go
+type ActionNodeOpts struct {
+    ActionType IntegrationActionType
+}
+```
+
+<ParamField path="ActionType" type="IntegrationActionType">
+  Specific action type from the integration (e.g., `send_message`, `create_record`, `query_database`)
+</ParamField>
+
+---
+
+## Helper Methods
+
+### GetInputByID
+
+Retrieves a specific input by its ID.
+
+```go
+func (n *WorkflowNode) GetInputByID(inputID string) (NodeInput, bool)
+```
+
+**Example:**
+```go
+input, found := node.GetInputByID("input-123")
+if found {
+    // Process the input
+}
+```
+
+---
+
+## JSON Example
+
+### Trigger Node Example
+
+```json
+{
+  "id": "node-trigger-001",
+  "workflow_id": "wf-abc123",
+  "name": "New Email Trigger",
+  "type": "trigger",
+  "integration_type": "gmail",
+  "subscribed_events": [],
+  "positions": {
+    "x_position": 100,
+    "y_position": 100
+  },
+  "integration_settings": {
+    "credential_id": "cred-gmail-123",
+    "folder": "INBOX"
+  },
+  "settings": {
+    "return_error_as_item": false,
+    "overwrite_execution_limit": false,
+    "execution_limit": 0
+  },
+  "inputs": [],
+  "trigger_node_opts": {
+    "event_type": "new_email"
+  }
+}
+```
+
+### Action Node Example
+
+```json
+{
+  "id": "node-action-001",
+  "workflow_id": "wf-abc123",
+  "name": "Send Slack Message",
+  "type": "action",
+  "integration_type": "slack",
+  "subscribed_events": ["output-node-trigger-001-0"],
+  "positions": {
+    "x_position": 400,
+    "y_position": 100
+  },
+  "integration_settings": {
+    "credential_id": "cred-slack-123",
+    "channel": "#general",
+    "message": "New email received: {{$node.trigger_001.subject}}"
+  },
+  "settings": {
+    "return_error_as_item": true,
+    "overwrite_execution_limit": false,
+    "execution_limit": 0
+  },
+  "expression_selected_properties": ["message"],
+  "inputs": [
+    {
+      "input_id": "input-0",
+      "subscribed_events": ["output-node-trigger-001-0"]
+    }
+  ],
+  "action_node_opts": {
+    "action_type": "send_message"
+  }
+}
+```
+
+---
+
+## Node Execution Flow
+
+1. **Trigger nodes** initiate workflow execution when their events occur
+2. Data flows through **subscribed events** to connected nodes
+3. **Action nodes** execute when they receive data from their inputs
+4. **Expression-selected properties** allow dynamic data interpolation
+5. **Execution limits** prevent infinite loops
+
+---
+
+## Usage Context
+
+Nodes can be used in different contexts:
+
+<ParamField path="workflow" type="ActionUsageContext">
+  Regular workflow automation
+</ParamField>
+
+<ParamField path="tool" type="ActionUsageContext">
+  AI Agent tool
+</ParamField>
+
+<ParamField path="llm_provider" type="ActionUsageContext">
+  LLM provider for AI agents
+</ParamField>
+
+<ParamField path="memory_provider" type="ActionUsageContext">
+  Memory provider for AI agents
+</ParamField>
+
+---
+
+## Related Models
+
+<CardGroup cols={2}>
+  <Card title="Workflow Model" icon="diagram-project" href="/api/workflow">
+    Learn about workflows
+  </Card>
+  <Card title="Integration Model" icon="plug" href="/api/integration">
+    Understand integrations
+  </Card>
+</CardGroup>
+
+## Source Code Reference
+
+Definition: `pkg/domain/workflow.go:100`

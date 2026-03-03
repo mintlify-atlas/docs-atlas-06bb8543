@@ -1,0 +1,209 @@
+---
+title: PostgreSQL Integration
+description: Execute SQL queries and manage data in PostgreSQL databases with Flowbaker.
+---
+
+The PostgreSQL integration enables you to connect to PostgreSQL databases and execute SQL queries directly from your workflows.
+
+## Authentication
+
+Connect to your PostgreSQL database using a connection string:
+
+- **PostgreSQL URI** (required): Connection string in the format:
+  ```
+  postgresql://username:password@host:port/database
+  ```
+
+## Available Actions
+
+### Execute Query
+Execute a raw SQL query against your PostgreSQL database.
+
+**Parameters:**
+- `query` (required): SQL query to execute with syntax highlighting
+
+The query editor supports:
+- SQL syntax highlighting for PostgreSQL
+- Parameter binding for secure queries
+- Multi-line query editing
+
+### Agent Conversation Memory
+Use PostgreSQL to store and retrieve conversation history for AI agents.
+
+**Parameters:**
+- `table_prefix` (optional): Prefix for tables (e.g., 'ai_memory' creates ai_memory_conversations and ai_memory_messages)
+- `session_id` (required): Unique identifier for the session
+
+## Configuration Example
+
+### Basic Query
+```json
+{
+  "query": "SELECT * FROM users WHERE email = $1",
+  "parameters": ["user@example.com"]
+}
+```
+
+### Insert Data
+```json
+{
+  "query": "INSERT INTO orders (user_id, product_id, quantity) VALUES ($1, $2, $3) RETURNING id",
+  "parameters": [123, 456, 2]
+}
+```
+
+### Update Records
+```json
+{
+  "query": "UPDATE products SET stock = stock - $1 WHERE id = $2",
+  "parameters": [5, 789]
+}
+```
+
+## Connection String Format
+
+PostgreSQL URI components:
+- **Protocol**: `postgresql://` or `postgres://`
+- **Username**: Database user
+- **Password**: User password (URL-encoded if contains special characters)
+- **Host**: Database server hostname or IP
+- **Port**: Database port (default: 5432)
+- **Database**: Database name
+
+Examples:
+```
+postgresql://user:pass@localhost:5432/mydb
+postgresql://user:pass@db.example.com/production
+postgresql://user:pass@10.0.1.5:5432/analytics?sslmode=require
+```
+
+## Query Parameters
+
+Use parameterized queries for security:
+- Parameters are referenced as `$1`, `$2`, `$3`, etc.
+- Prevents SQL injection attacks
+- Automatically handles data type conversions
+- Improves query performance through prepared statements
+
+## Transaction Support
+
+Execute multiple statements in a transaction:
+```sql
+BEGIN;
+INSERT INTO accounts (user_id, balance) VALUES ($1, $2);
+UPDATE users SET account_created = true WHERE id = $1;
+COMMIT;
+```
+
+## Common SQL Operations
+
+### SELECT Queries
+```sql
+-- Get all records
+SELECT * FROM products WHERE category = $1;
+
+-- Join tables
+SELECT u.name, o.total 
+FROM users u 
+INNER JOIN orders o ON u.id = o.user_id 
+WHERE o.status = $1;
+
+-- Aggregate functions
+SELECT category, COUNT(*), AVG(price) 
+FROM products 
+GROUP BY category;
+```
+
+### INSERT Operations
+```sql
+-- Single insert
+INSERT INTO users (name, email) VALUES ($1, $2);
+
+-- Insert with RETURNING
+INSERT INTO posts (title, content, user_id) 
+VALUES ($1, $2, $3) 
+RETURNING id, created_at;
+
+-- Bulk insert
+INSERT INTO logs (message, level) 
+VALUES 
+  ('Error occurred', 'ERROR'),
+  ('Warning message', 'WARN');
+```
+
+### UPDATE Operations
+```sql
+-- Update single record
+UPDATE users SET last_login = NOW() WHERE id = $1;
+
+-- Update multiple fields
+UPDATE products 
+SET price = $1, updated_at = NOW() 
+WHERE category = $2;
+
+-- Conditional update
+UPDATE inventory 
+SET quantity = quantity - $1 
+WHERE product_id = $2 AND quantity >= $1;
+```
+
+### DELETE Operations
+```sql
+-- Delete specific records
+DELETE FROM sessions WHERE expires_at < NOW();
+
+-- Delete with condition
+DELETE FROM temp_data WHERE user_id = $1;
+
+-- Delete with RETURNING
+DELETE FROM queue WHERE processed = true RETURNING id;
+```
+
+## Best Practices
+
+1. **Always use parameterized queries** to prevent SQL injection
+2. **Use transactions** for operations that must succeed or fail together
+3. **Create indexes** on frequently queried columns
+4. **Limit result sets** with LIMIT and OFFSET for large datasets
+5. **Use RETURNING** clause to get inserted/updated data
+6. **Handle errors** gracefully in your workflows
+7. **Monitor query performance** and optimize slow queries
+8. **Use connection pooling** for better performance
+9. **Encrypt sensitive data** in database columns
+10. **Regular backups** of production databases
+
+## AI Agent Memory
+
+When using PostgreSQL for AI agent memory:
+- Creates two tables: `{prefix}_conversations` and `{prefix}_messages`
+- Stores conversation context and message history
+- Enables AI agents to maintain context across interactions
+- Supports session-based conversation management
+
+## Error Handling
+
+Common PostgreSQL errors:
+- **Connection refused**: Check host, port, and network connectivity
+- **Authentication failed**: Verify username and password
+- **Syntax error**: Review SQL query syntax
+- **Constraint violation**: Check foreign key and unique constraints
+- **Permission denied**: Ensure user has required privileges
+
+## Performance Optimization
+
+1. **Indexes**: Create indexes on WHERE clause columns
+2. **EXPLAIN**: Use EXPLAIN ANALYZE to understand query plans
+3. **Batch operations**: Group multiple inserts/updates
+4. **Connection pooling**: Reuse database connections
+5. **Prepared statements**: Cache query execution plans
+6. **Partitioning**: Split large tables for better performance
+
+## Common Use Cases
+
+- **Data Storage**: Store workflow results and application data
+- **User Management**: Manage user accounts and permissions
+- **Analytics**: Query and aggregate business data
+- **Logging**: Store application logs and audit trails
+- **Caching**: Cache frequently accessed data
+- **Session Management**: Store user sessions and state
+- **AI Memory**: Maintain conversation context for AI agents
